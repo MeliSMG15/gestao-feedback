@@ -283,6 +283,110 @@ body {
 .next-table .icon-btn.danger { color: var(--red); border-color: rgba(194,38,29,0.3); }
 .next-table .icon-btn.danger:hover { background: rgba(194,38,29,0.06); }
 
+/* ── COMPARATIVO ── */
+.comp-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.comp-kpi {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.comp-kpi .icon { font-size: 24px; }
+.comp-kpi .label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
+.comp-kpi .value { font-size: 22px; font-weight: 800; color: var(--text); line-height: 1; font-family: 'DM Mono', monospace; }
+
+.comp-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 900px) { .comp-grid { grid-template-columns: 1fr; } }
+.comp-mini-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 3px rgba(30,60,110,0.04);
+}
+.comp-card-title {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border);
+}
+.comp-card-total {
+  font-size: 22px; font-weight: 800; color: var(--text);
+  font-family: 'DM Mono', monospace;
+}
+.comp-bars { display: flex; flex-direction: column; gap: 8px; max-height: 280px; overflow-y: auto; }
+.comp-bar-row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 10px;
+  align-items: center;
+  font-size: 12px;
+}
+.comp-bar-name {
+  color: var(--text); font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  text-align: right;
+}
+.comp-bar-track {
+  position: relative;
+  height: 24px;
+  background: var(--surface3);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.comp-bar-fill {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  border-radius: 5px 0 0 5px;
+  transition: width 0.5s ease;
+}
+.comp-bar-fill.alinhado       { background: linear-gradient(90deg, #16a34a, #4ade80); }
+.comp-bar-fill.necessita      { background: linear-gradient(90deg, #d97706, #fbbf24); }
+.comp-bar-fill.promocao       { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
+.comp-bar-fill.internalizacao { background: linear-gradient(90deg, #0891b2, #22d3ee); }
+.comp-bar-val {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  font-family: 'DM Mono', monospace; font-weight: 800;
+  font-size: 12px; color: var(--text); z-index: 1;
+}
+.comp-empty { padding: 24px 16px; text-align: center; color: var(--text3); font-size: 13px; }
+
+/* Tabela cruzada */
+.comp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.comp-table thead th {
+  background: var(--surface2);
+  color: var(--text2);
+  font-weight: 700; font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  padding: 12px 14px; text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+.comp-table thead th:first-child { text-align: left; }
+.comp-table tbody td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+  font-family: 'DM Mono', monospace; font-weight: 700;
+}
+.comp-table tbody td:first-child { text-align: left; font-family: 'Inter', sans-serif; color: var(--text); }
+.comp-table tbody tr:hover td { background: var(--surface2); }
+.comp-table tbody tr.total-row td { background: var(--surface2); border-top: 2px solid var(--border2); font-weight: 800; }
+.comp-table tbody tr:last-child td { border-bottom: none; }
+.comp-table .cell-pct { font-size: 11px; color: var(--text3); font-weight: 500; display: block; margin-top: 2px; }
+.comp-table .cell-alinhado  { color: #16a34a; }
+.comp-table .cell-necessita { color: #d97706; }
+.comp-table .cell-promocao  { color: #7c3aed; }
+.comp-table .cell-internalizacao { color: #0891b2; }
+
 /* Section title geral */
 .section-title {
   font-size: 16px;
@@ -622,6 +726,7 @@ body {
   </div>
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('dashboard')">📊 Dashboard</button>
+    <button class="tab-btn" onclick="switchTab('comparativo')">⚖ Comparativo</button>
     <button class="tab-btn" onclick="switchTab('respostas')">📝 Respostas 1:1</button>
   </div>
   <div class="topbar-right">
@@ -768,6 +873,65 @@ body {
         <div class="pend-card-header">TEMPORÁRIO <span class="count" id="pend-temp-count">0</span></div>
         <div id="pend-temp-list"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- COMPARATIVO VIEW -->
+  <div class="view" id="view-comparativo">
+    <div class="page-title">
+      <div>
+        <h1>⚖ Comparativo entre Líderes</h1>
+        <div class="sub" id="comp-subtitle">—</div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <select id="comp-mes-filter" onchange="refreshComparativo()" class="filter-input"></select>
+      </div>
+    </div>
+
+    <!-- KPI line — total realizados e por classificação -->
+    <div class="comp-kpi-row" id="comp-kpi-row"></div>
+
+    <!-- 4 mini-charts: 1 por classificação, líderes em barras -->
+    <div class="comp-grid">
+      <div class="comp-mini-card">
+        <div class="comp-card-title">
+          <span class="class-pill alinhado">✅ Alinhados</span>
+          <span class="comp-card-total" id="comp-total-alin">0</span>
+        </div>
+        <div class="comp-bars" id="comp-bars-alin"></div>
+      </div>
+      <div class="comp-mini-card">
+        <div class="comp-card-title">
+          <span class="class-pill necessita">⚠ Necessita alinhamento</span>
+          <span class="comp-card-total" id="comp-total-nec">0</span>
+        </div>
+        <div class="comp-bars" id="comp-bars-nec"></div>
+      </div>
+      <div class="comp-mini-card">
+        <div class="comp-card-title">
+          <span class="class-pill promocao">⭐ Potencial para promoção</span>
+          <span class="comp-card-total" id="comp-total-pot">0</span>
+        </div>
+        <div class="comp-bars" id="comp-bars-pot"></div>
+      </div>
+      <div class="comp-mini-card">
+        <div class="comp-card-title">
+          <span class="class-pill internalizacao">🎯 Potencial para internalização</span>
+          <span class="comp-card-total" id="comp-total-int">0</span>
+        </div>
+        <div class="comp-bars" id="comp-bars-int"></div>
+      </div>
+    </div>
+
+    <!-- Tabela cruzada consolidada -->
+    <div class="card" style="padding:0;overflow:hidden;margin-top:20px">
+      <div class="card-toolbar">
+        <div class="card-title-block">
+          <span class="section-title-inline">Visão consolidada</span>
+          <span class="card-subtitle">Total de 1:1 realizados por líder, por classificação</span>
+        </div>
+      </div>
+      <div id="comp-table-host"></div>
     </div>
   </div>
 
@@ -955,10 +1119,11 @@ function switchTab(name) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('view-' + name).classList.add('active');
-  const idx = ['dashboard','respostas'].indexOf(name);
+  const idx = ['dashboard','comparativo','respostas'].indexOf(name);
   document.querySelectorAll('.tab-btn')[idx].classList.add('active');
-  if (name === 'dashboard') refreshDashboard();
-  if (name === 'respostas') refreshRespostas();
+  if (name === 'dashboard')   refreshDashboard();
+  if (name === 'comparativo') refreshComparativo();
+  if (name === 'respostas')   refreshRespostas();
 }
 
 // ── Init filters: mês corrente e líderes ──
@@ -1533,6 +1698,136 @@ function toggleRespCard(i) {
   const el = document.getElementById('resp-card-' + i);
   if (el) el.classList.toggle('open');
 }
+// ── Comparativo entre Líderes ──
+function refreshComparativo() {
+  _populateMesFilter('comp-mes-filter');
+  const mes = document.getElementById('comp-mes-filter').value || today().slice(0,7);
+
+  function normClass(s) {
+    return (s||'').toString().trim().toLowerCase()
+      .normalize('NFD').replace(/[̀-ͯ]/g, '');
+  }
+  function classKey(s) {
+    const c = normClass(s);
+    if (c === 'alinhado') return 'alin';
+    if (c === 'necessita alinhamento' || c === 'necessita') return 'nec';
+    if (c === 'potencial para promocao' || c === 'potencial') return 'pot';
+    if (c === 'potencial para internalizacao' || c === 'internalizacao') return 'int';
+    return null;
+  }
+
+  // byLider: { LIDER: { alin, nec, pot, int, total } }
+  const byLider = {};
+  Object.entries(oneOnOnes).forEach(([idx, items]) => {
+    const colab = allColabs[parseInt(idx)];
+    if (!colab || !isActive(colab)) return;
+    const lider = (colab['LÍDER'] || '—').trim() || '—';
+    Object.values(items).forEach(o => {
+      if (o.status !== 'REALIZADO' || !o.form) return;
+      const d = (o.form && o.form.date) || o.date || '';
+      if (!d.startsWith(mes)) return;
+      const key = classKey(o.form.classificacao);
+      if (!key) return;
+      if (!byLider[lider]) byLider[lider] = { alin: 0, nec: 0, pot: 0, int: 0, total: 0 };
+      byLider[lider][key]++;
+      byLider[lider].total++;
+    });
+  });
+
+  const lideres = Object.keys(byLider).sort((a,b) => byLider[b].total - byLider[a].total || a.localeCompare(b));
+
+  // Totais gerais
+  const totals = { alin: 0, nec: 0, pot: 0, int: 0, total: 0 };
+  lideres.forEach(l => {
+    ['alin','nec','pot','int','total'].forEach(k => totals[k] += byLider[l][k]);
+  });
+
+  document.getElementById('comp-subtitle').textContent =
+    lideres.length === 0
+      ? `Sem 1:1 realizados no mês — escolha outro período`
+      : `${totals.total} 1:1 realizados · ${lideres.length} líder(es) ativo(s) · ${mes}`;
+
+  // KPI row
+  document.getElementById('comp-kpi-row').innerHTML = `
+    <div class="comp-kpi"><div class="icon">📊</div><div><div class="label">Total realizados</div><div class="value">${totals.total}</div></div></div>
+    <div class="comp-kpi"><div class="icon">✅</div><div><div class="label">Alinhados</div><div class="value" style="color:#16a34a">${totals.alin}</div></div></div>
+    <div class="comp-kpi"><div class="icon">⚠</div><div><div class="label">Necessitam</div><div class="value" style="color:#d97706">${totals.nec}</div></div></div>
+    <div class="comp-kpi"><div class="icon">⭐</div><div><div class="label">Promoção</div><div class="value" style="color:#7c3aed">${totals.pot}</div></div></div>
+    <div class="comp-kpi"><div class="icon">🎯</div><div><div class="label">Internalização</div><div class="value" style="color:#0891b2">${totals.int}</div></div></div>
+  `;
+
+  function renderBars(barElId, totalElId, key, classCls) {
+    const max = Math.max(1, ...lideres.map(l => byLider[l][key]));
+    document.getElementById(totalElId).textContent = totals[key];
+    const host = document.getElementById(barElId);
+    if (!lideres.length) {
+      host.innerHTML = '<div class="comp-empty">Sem dados no mês</div>';
+      return;
+    }
+    // Ordena pra essa classificação especificamente
+    const sorted = [...lideres].sort((a,b) => byLider[b][key] - byLider[a][key]);
+    host.innerHTML = sorted.map(l => {
+      const v = byLider[l][key];
+      const pct = (v / max * 100);
+      return `<div class="comp-bar-row">
+        <div class="comp-bar-name" title="${l}">${l}</div>
+        <div class="comp-bar-track">
+          <div class="comp-bar-fill ${classCls}" style="width:${pct}%"></div>
+          <div class="comp-bar-val">${v}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  renderBars('comp-bars-alin', 'comp-total-alin', 'alin', 'alinhado');
+  renderBars('comp-bars-nec',  'comp-total-nec',  'nec',  'necessita');
+  renderBars('comp-bars-pot',  'comp-total-pot',  'pot',  'promocao');
+  renderBars('comp-bars-int',  'comp-total-int',  'int',  'internalizacao');
+
+  // Tabela cruzada
+  const tbHost = document.getElementById('comp-table-host');
+  if (!lideres.length) {
+    tbHost.innerHTML = '<div class="empty-state" style="margin:20px"><div class="ico">📊</div><div class="ttl">Sem dados pra comparar</div><div>Conclua 1:1 com classificação no mês selecionado.</div></div>';
+    return;
+  }
+  function cell(v, total, cls) {
+    if (!v) return '<td><span style="color:var(--text3)">—</span></td>';
+    const pct = total > 0 ? Math.round(v / total * 100) : 0;
+    return `<td class="${cls}">${v}<span class="cell-pct">${pct}%</span></td>`;
+  }
+  const rows = lideres.map(l => {
+    const r = byLider[l];
+    return `<tr>
+      <td>${l}</td>
+      ${cell(r.alin, r.total, 'cell-alinhado')}
+      ${cell(r.nec,  r.total, 'cell-necessita')}
+      ${cell(r.pot,  r.total, 'cell-promocao')}
+      ${cell(r.int,  r.total, 'cell-internalizacao')}
+      <td><strong>${r.total}</strong></td>
+    </tr>`;
+  }).join('');
+  // Linha de total geral
+  const totalRow = `<tr class="total-row">
+    <td>TOTAL GERAL</td>
+    <td class="cell-alinhado">${totals.alin}</td>
+    <td class="cell-necessita">${totals.nec}</td>
+    <td class="cell-promocao">${totals.pot}</td>
+    <td class="cell-internalizacao">${totals.int}</td>
+    <td>${totals.total}</td>
+  </tr>`;
+
+  tbHost.innerHTML = `<table class="comp-table">
+    <thead><tr>
+      <th>Líder</th>
+      <th>✅ Alinhado</th>
+      <th>⚠ Necessita</th>
+      <th>⭐ Promoção</th>
+      <th>🎯 Internalização</th>
+      <th>Total</th>
+    </tr></thead>
+    <tbody>${rows}${totalRow}</tbody>
+  </table>`;
+}
+
 function reabrirParaEditar(idx, id) {
   if (!canEdit()) return notify('Sem permissão', 'error');
   openRealizarModal(idx, id, false);
