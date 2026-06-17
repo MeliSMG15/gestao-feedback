@@ -327,6 +327,147 @@ body {
 }
 .modal-actions { display: flex; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
 
+/* Filtros */
+.filter-input {
+  padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border);
+  font-family: inherit; font-size: 13px; background: #fff; color: var(--text);
+}
+.filter-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(30,106,224,0.12); }
+
+/* Tabelas modernas — Agendamentos e Respostas */
+.data-table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table thead th {
+  background: var(--surface3);
+  color: var(--text2);
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.data-table tbody td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.data-table tbody tr:hover td { background: var(--surface2); }
+.data-table tbody tr:last-child td { border-bottom: none; }
+
+/* Status pills */
+.status-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 12px; border-radius: 20px;
+  font-size: 12px; font-weight: 700; letter-spacing: 0.3px;
+}
+.status-pill.AGENDADO  { background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; }
+.status-pill.REALIZADO { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+.status-pill.CANCELADO { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+.status-pill.ATRASADO  { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+
+/* Classificação pills */
+.class-pill {
+  display: inline-flex; align-items: center;
+  padding: 4px 10px; border-radius: 12px;
+  font-size: 11px; font-weight: 700;
+  border: 1px solid;
+}
+.class-pill.alinhado     { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
+.class-pill.necessita    { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+.class-pill.promocao     { background: #ddd6fe; color: #5b21b6; border-color: #c4b5fd; }
+.class-pill.internalizacao { background: #cffafe; color: #155e75; border-color: #67e8f9; }
+
+/* Classificação radio buttons grandes */
+.class-radio {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px; font-weight: 600;
+  background: #fff;
+  transition: all 0.15s;
+}
+.class-radio:hover { border-color: var(--border2); background: var(--surface2); }
+.class-radio.selected { border-color: var(--accent); background: rgba(30,106,224,0.08); color: var(--accent); }
+.class-radio.selected.alinhado    { border-color: #16a34a; background: #d1fae5; color: #065f46; }
+.class-radio.selected.necessita   { border-color: #d97706; background: #fef3c7; color: #92400e; }
+.class-radio.selected.promocao    { border-color: #7c3aed; background: #ddd6fe; color: #5b21b6; }
+.class-radio.selected.internalizacao { border-color: #0891b2; background: #cffafe; color: #155e75; }
+.class-radio input { display: none; }
+
+/* Action buttons na tabela */
+.action-btn {
+  background: transparent; border: 1px solid var(--border);
+  padding: 6px 10px; border-radius: 6px; cursor: pointer;
+  font-size: 12px; font-weight: 600; color: var(--text2);
+  transition: all 0.15s;
+}
+.action-btn:hover { background: var(--surface2); color: var(--text); border-color: var(--border2); }
+.action-btn.primary { color: var(--accent); border-color: rgba(30,106,224,0.4); }
+.action-btn.primary:hover { background: rgba(30,106,224,0.08); }
+.action-btn.danger  { color: var(--red); border-color: rgba(194,38,29,0.4); }
+.action-btn.danger:hover { background: rgba(194,38,29,0.06); }
+.action-btn.success { color: var(--green); border-color: rgba(15,123,63,0.4); }
+.action-btn.success:hover { background: rgba(15,123,63,0.08); }
+
+/* Card de resposta (expansível) */
+.resp-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  transition: box-shadow 0.15s;
+}
+.resp-card:hover { box-shadow: 0 4px 12px rgba(30,60,110,0.08); }
+.resp-card-header {
+  padding: 14px 18px;
+  display: grid;
+  grid-template-columns: 1fr 140px 130px 140px 30px;
+  gap: 12px;
+  align-items: center;
+  cursor: pointer;
+  font-size: 13px;
+}
+.resp-card-header:hover { background: var(--surface2); }
+.resp-card-header .arrow { transition: transform 0.2s; color: var(--text3); }
+.resp-card.open .resp-card-header .arrow { transform: rotate(90deg); }
+.resp-card-body {
+  display: none;
+  padding: 0 18px 18px;
+  border-top: 1px solid var(--border);
+}
+.resp-card.open .resp-card-body { display: block; }
+.resp-bloco {
+  margin-top: 12px;
+  padding: 12px 14px;
+  background: var(--surface2);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+}
+.resp-bloco h4 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text2); margin-bottom: 6px; font-weight: 700; }
+.resp-bloco p { font-size: 13px; color: var(--text); white-space: pre-wrap; line-height: 1.5; }
+
+/* Empty state */
+.empty-state {
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--text3);
+}
+.empty-state .ico { font-size: 48px; margin-bottom: 12px; }
+.empty-state .ttl { font-size: 16px; font-weight: 700; color: var(--text2); margin-bottom: 4px; }
+
 /* Loading */
 .loading-overlay { position: fixed; inset: 0; background: rgba(241, 245, 251, 0.85); display: none; align-items: center; justify-content: center; z-index: 999; }
 .loading-overlay.show { display: flex; }
@@ -378,8 +519,8 @@ body {
   </div>
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('dashboard')">📊 Dashboard</button>
-    <button class="tab-btn" onclick="switchTab('agendar')">📅 Agendar 1:1</button>
-    <button class="tab-btn" onclick="switchTab('forms')">📝 Formulário 1:1</button>
+    <button class="tab-btn" onclick="switchTab('agendamentos')">📅 Agendamentos</button>
+    <button class="tab-btn" onclick="switchTab('respostas')">📝 Respostas 1:1</button>
   </div>
   <div class="topbar-right">
     <div class="online-pill">
@@ -491,35 +632,98 @@ body {
     </div>
   </div>
 
-  <!-- AGENDAR VIEW -->
-  <div class="view" id="view-agendar">
+  <!-- AGENDAMENTOS VIEW -->
+  <div class="view" id="view-agendamentos">
     <div class="page-title">
       <div>
         <h1>📅 Agendamentos 1:1</h1>
-        <div class="sub">Visualização e gerenciamento dos 1:1 marcados</div>
+        <div class="sub" id="ag-subtitle">Total: —</div>
       </div>
-      <button class="btn btn-primary" onclick="openAgendarModal()">+ Novo 1:1</button>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <select id="ag-filter-status" onchange="refreshAgendamentos()" class="filter-input">
+          <option value="">Todos status</option>
+          <option value="AGENDADO">Agendado</option>
+          <option value="REALIZADO">Realizado</option>
+          <option value="CANCELADO">Cancelado</option>
+        </select>
+        <select id="ag-filter-lider" onchange="refreshAgendamentos()" class="filter-input">
+          <option value="">Todos líderes</option>
+        </select>
+        <select id="ag-filter-mes" onchange="refreshAgendamentos()" class="filter-input"></select>
+        <input type="text" id="ag-filter-search" placeholder="🔍 Nome..." oninput="refreshAgendamentos()" class="filter-input" style="min-width:160px">
+        <button class="btn btn-primary" onclick="openAgendarModal()">+ Novo 1:1</button>
+      </div>
     </div>
-    <div class="card">
-      <div id="agendar-list">Em construção…</div>
-    </div>
+    <div id="ag-list-host"></div>
   </div>
 
-  <!-- FORMS VIEW -->
-  <div class="view" id="view-forms">
+  <!-- RESPOSTAS VIEW -->
+  <div class="view" id="view-respostas">
     <div class="page-title">
       <div>
-        <h1>📝 Formulário de Acompanhamento 1:1</h1>
-        <div class="sub">As perguntas vão aqui — me manda a estrutura do forms</div>
+        <h1>📝 Respostas dos 1:1 Realizados</h1>
+        <div class="sub" id="resp-subtitle">Total: —</div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <select id="resp-filter-lider" onchange="refreshRespostas()" class="filter-input">
+          <option value="">Todos líderes</option>
+        </select>
+        <select id="resp-filter-class" onchange="refreshRespostas()" class="filter-input">
+          <option value="">Todas classificações</option>
+          <option value="Alinhado">Alinhado</option>
+          <option value="Necessita alinhamento">Necessita alinhamento</option>
+          <option value="Potencial para promoção">Potencial para promoção</option>
+          <option value="Potencial para internalização">Potencial para internalização</option>
+        </select>
+        <select id="resp-filter-mes" onchange="refreshRespostas()" class="filter-input"></select>
+        <input type="text" id="resp-filter-search" placeholder="🔍 Nome..." oninput="refreshRespostas()" class="filter-input" style="min-width:160px">
+        <button class="btn" onclick="exportRespostasCSV()">⬇ Exportar CSV</button>
       </div>
     </div>
-    <div class="card">
-      <div style="text-align:center;padding:40px;color:var(--text2)">
-        ⏳ Aguardando você enviar as perguntas do forms pra eu montar
-      </div>
-    </div>
+    <div id="resp-list-host"></div>
   </div>
 
+</div>
+
+<!-- MODAL: Realizar 1:1 (com formulário inline) -->
+<div class="modal-overlay" id="modal-realizar">
+  <div class="modal" style="width:min(92vw,720px)">
+    <div class="modal-title">✓ Realizar 1:1 — Formulário de Acompanhamento</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:14px">Preencha as respostas do 1:1. Tudo fica registrado em "Respostas".</div>
+
+    <div class="form-grid">
+      <div class="form-group full">
+        <label>Nome do colaborador</label>
+        <input type="text" id="rz-colab" readonly>
+      </div>
+      <div class="form-group">
+        <label>Tipo de contrato</label>
+        <input type="text" id="rz-tipo" placeholder="Auto-preenchido (editável)">
+      </div>
+      <div class="form-group">
+        <label>Data do 1:1</label>
+        <input type="date" id="rz-date">
+      </div>
+      <div class="form-group full">
+        <label>Anote os principais pontos trazidos pelo colaborador *</label>
+        <textarea id="rz-pontos-colab" rows="4" placeholder="O que o colaborador trouxe na conversa..."></textarea>
+      </div>
+      <div class="form-group full">
+        <label>Anote os pontos que você orientou o colaborador *</label>
+        <textarea id="rz-pontos-orient" rows="4" placeholder="Orientações, feedbacks, próximos passos..."></textarea>
+      </div>
+      <div class="form-group full">
+        <label>Como você classifica esse colaborador no desempenho? *</label>
+        <div id="rz-classificacao" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px"></div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost" onclick="closeRealizarModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveRealizar()">✓ Concluir 1:1</button>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL: Agendar 1:1 -->
@@ -637,9 +841,11 @@ function switchTab(name) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('view-' + name).classList.add('active');
-  const idx = ['dashboard','agendar','forms'].indexOf(name);
+  const idx = ['dashboard','agendamentos','respostas'].indexOf(name);
   document.querySelectorAll('.tab-btn')[idx].classList.add('active');
-  if (name === 'dashboard') refreshDashboard();
+  if (name === 'dashboard')    refreshDashboard();
+  if (name === 'agendamentos') refreshAgendamentos();
+  if (name === 'respostas')    refreshRespostas();
 }
 
 // ── Init filters: mês corrente e líderes ──
@@ -719,9 +925,9 @@ function renderNextList() {
     const colab = allColabs[idx];
     if (!colab || !isActive(colab)) return;
     if (lider && (colab['LÍDER']||'').trim() !== lider) return;
-    Object.values(items).forEach(o => {
+    Object.entries(items).forEach(([id, o]) => {
       if (!o.date || !o.date.startsWith(mes)) return;
-      list.push({ colab, ...o });
+      list.push({ idx, id, colab, ...o });
     });
   });
   list.sort((a,b) => (a.date || '').localeCompare(b.date || ''));
@@ -894,6 +1100,374 @@ function saveAgendamento() {
     .then(() => { notify(`1:1 agendado pra ${allColabs[idx].COLABORADOR} em ${formatDate(date)}`); closeAgendarModal(); })
     .catch(err => notify('Falha ao salvar: ' + (err.message || err), 'error'));
 }
+
+// ── Helpers compartilhados pra agendamentos/respostas ──
+const CLASSIFICACOES = [
+  { key: 'Alinhado',                       cls: 'alinhado',       ico: '✅' },
+  { key: 'Necessita alinhamento',          cls: 'necessita',      ico: '⚠' },
+  { key: 'Potencial para promoção',        cls: 'promocao',       ico: '⭐' },
+  { key: 'Potencial para internalização',  cls: 'internalizacao', ico: '🎯' }
+];
+function classPillHtml(value) {
+  const c = CLASSIFICACOES.find(x => x.key === value);
+  if (!c) return `<span style="color:var(--text3);font-size:12px">—</span>`;
+  return `<span class="class-pill ${c.cls}">${c.ico} ${c.key}</span>`;
+}
+function flatAgendamentos() {
+  // Retorna lista plana de todos os agendamentos com referência ao colaborador
+  const out = [];
+  Object.entries(oneOnOnes).forEach(([idx, items]) => {
+    Object.entries(items).forEach(([id, o]) => {
+      const colab = allColabs[parseInt(idx)];
+      if (!colab) return;
+      out.push({ idx: parseInt(idx), id, colab, ...o });
+    });
+  });
+  return out;
+}
+function _populateMesFilter(selId) {
+  const sel = document.getElementById(selId);
+  if (!sel) return;
+  const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const now = new Date();
+  sel.innerHTML = '<option value="">Todos os meses</option>';
+  for (let i = -6; i <= 2; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    const v = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const lbl = `${meses[d.getMonth()]} ${d.getFullYear()}`;
+    const opt = document.createElement('option');
+    opt.value = v; opt.textContent = lbl;
+    if (i === 0) opt.selected = true;
+    sel.appendChild(opt);
+  }
+}
+function _populateLiderFilter(selId) {
+  const sel = document.getElementById(selId);
+  if (!sel) return;
+  const lideres = [...new Set(allColabs.map(r => (r['LÍDER']||'').trim()).filter(v => v))].sort();
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Todos líderes</option>' + lideres.map(l => `<option>${l}</option>`).join('');
+  if (cur) sel.value = cur;
+}
+
+// ── Aba AGENDAMENTOS ──
+function refreshAgendamentos() {
+  _populateLiderFilter('ag-filter-lider');
+  _populateMesFilter('ag-filter-mes');
+
+  const status = document.getElementById('ag-filter-status').value;
+  const lider  = document.getElementById('ag-filter-lider').value;
+  const mes    = document.getElementById('ag-filter-mes').value;
+  const search = (document.getElementById('ag-filter-search').value || '').trim().toLowerCase();
+
+  let list = flatAgendamentos();
+  if (status) list = list.filter(o => (o.status||'AGENDADO') === status);
+  if (lider)  list = list.filter(o => (o.colab['LÍDER']||'').trim() === lider);
+  if (mes)    list = list.filter(o => o.date && o.date.startsWith(mes));
+  if (search) list = list.filter(o => (o.colab.COLABORADOR||'').toLowerCase().includes(search));
+
+  // Ordena: pendentes/agendados antes, depois realizados, cancelados por último — dentro de cada por data desc
+  list.sort((a,b) => {
+    const ord = { AGENDADO: 0, REALIZADO: 1, CANCELADO: 2 };
+    const oa = ord[a.status||'AGENDADO'] ?? 0;
+    const ob = ord[b.status||'AGENDADO'] ?? 0;
+    if (oa !== ob) return oa - ob;
+    return (b.date||'').localeCompare(a.date||'');
+  });
+
+  document.getElementById('ag-subtitle').textContent =
+    `${list.length} agendamento(s)${status ? ' · ' + status : ''}${lider ? ' · ' + lider : ''}`;
+
+  const host = document.getElementById('ag-list-host');
+  if (!list.length) {
+    host.innerHTML = '<div class="empty-state"><div class="ico">📅</div><div class="ttl">Nenhum agendamento</div><div>Use "+ Novo 1:1" pra agendar.</div></div>';
+    return;
+  }
+
+  const t = today();
+  host.innerHTML = `<div class="data-table-wrap"><table class="data-table">
+    <thead><tr>
+      <th>Colaborador</th>
+      <th>Empresa</th>
+      <th>Líder</th>
+      <th>Data</th>
+      <th>Status</th>
+      <th>Classificação</th>
+      <th style="text-align:right">Ações</th>
+    </tr></thead>
+    <tbody>${list.map(o => {
+      const st = o.status || 'AGENDADO';
+      let stPill = st;
+      if (st === 'AGENDADO' && o.date && o.date < t) stPill = 'ATRASADO';
+      const stLabel = st === 'AGENDADO' && o.date && o.date < t ? 'Atrasado' : (st.charAt(0) + st.slice(1).toLowerCase());
+      const cls = o.form && o.form.classificacao ? classPillHtml(o.form.classificacao) : '<span style="color:var(--text3);font-size:12px">—</span>';
+      const actions = st === 'REALIZADO'
+        ? `<button class="action-btn" onclick="openRealizarModal('${o.idx}','${o.id}',true)">👁 Ver</button>`
+        : st === 'CANCELADO'
+          ? `<button class="action-btn" onclick="reativarAg('${o.idx}','${o.id}')">↻ Reativar</button>
+             <button class="action-btn danger" onclick="excluirAg('${o.idx}','${o.id}')">🗑</button>`
+          : `<button class="action-btn success" onclick="openRealizarModal('${o.idx}','${o.id}')">✓ Realizar</button>
+             <button class="action-btn" onclick="editarAg('${o.idx}','${o.id}')">✏ Editar</button>
+             <button class="action-btn danger" onclick="cancelarAg('${o.idx}','${o.id}')">✗ Cancelar</button>`;
+      return `<tr>
+        <td><strong>${o.colab.COLABORADOR || '—'}</strong></td>
+        <td>${o.colab.EMPRESA || '—'}</td>
+        <td>${o.colab['LÍDER'] || '—'}</td>
+        <td class="mono">${o.date ? formatDate(o.date) : '—'}${o.time ? ' · ' + o.time : ''}</td>
+        <td><span class="status-pill ${stPill}">${stLabel}</span></td>
+        <td>${cls}</td>
+        <td style="text-align:right;white-space:nowrap">${actions}</td>
+      </tr>`;
+    }).join('')}</tbody></table></div>`;
+}
+
+// Ações na lista
+function cancelarAg(idx, id) {
+  if (!canEdit()) return notify('Sem permissão', 'error');
+  if (!confirm('Cancelar este agendamento?')) return;
+  db.ref(`feedback/oneOnOne/${idx}/${id}/status`).set('CANCELADO')
+    .then(() => notify('Agendamento cancelado'))
+    .catch(e => notify('Falha: ' + e.message, 'error'));
+}
+function reativarAg(idx, id) {
+  if (!canEdit()) return notify('Sem permissão', 'error');
+  db.ref(`feedback/oneOnOne/${idx}/${id}/status`).set('AGENDADO')
+    .then(() => notify('Agendamento reativado'))
+    .catch(e => notify('Falha: ' + e.message, 'error'));
+}
+function excluirAg(idx, id) {
+  if (!canEdit()) return notify('Sem permissão', 'error');
+  if (!confirm('Excluir definitivamente este registro? Esta ação não pode ser desfeita.')) return;
+  db.ref(`feedback/oneOnOne/${idx}/${id}`).remove()
+    .then(() => notify('Removido'))
+    .catch(e => notify('Falha: ' + e.message, 'error'));
+}
+function editarAg(idx, id) {
+  if (!canEdit()) return notify('Sem permissão', 'error');
+  const o = (oneOnOnes[idx]||{})[id];
+  if (!o) return;
+  // Reabre o modal de agendar com dados pré-preenchidos
+  openAgendarModal();
+  document.getElementById('ag-colab').value = allColabs[idx].COLABORADOR || '';
+  onAgColabChange();
+  document.getElementById('ag-date').value = o.date || today();
+  document.getElementById('ag-time').value = o.time || '';
+  document.getElementById('ag-obs').value  = o.obs || '';
+  _editingAgRef = { idx, id };
+}
+let _editingAgRef = null;
+
+// ── Modal REALIZAR (com forms inline) ──
+let _realizingRef = null;
+function openRealizarModal(idx, id, readonly) {
+  if (!readonly && !canEdit()) return notify('Sem permissão', 'error');
+  _realizingRef = { idx, id, readonly: !!readonly };
+  const o = (oneOnOnes[idx]||{})[id];
+  if (!o) return;
+  const colab = allColabs[idx];
+  document.getElementById('rz-colab').value = colab.COLABORADOR || '';
+  document.getElementById('rz-tipo').value  = (o.form && o.form.tipoContrato) || colab.EMPRESA || '';
+  document.getElementById('rz-date').value  = (o.form && o.form.date) || o.date || today();
+  document.getElementById('rz-pontos-colab').value  = (o.form && o.form.pontosColab) || '';
+  document.getElementById('rz-pontos-orient').value = (o.form && o.form.pontosOrient) || '';
+
+  // Render classificação radios
+  const classHost = document.getElementById('rz-classificacao');
+  const cur = (o.form && o.form.classificacao) || '';
+  classHost.innerHTML = CLASSIFICACOES.map(c => `
+    <label class="class-radio ${c.cls} ${cur===c.key?'selected ' + c.cls:''}" data-val="${c.key}" data-cls="${c.cls}">
+      ${c.ico} ${c.key}
+      <input type="radio" name="rz-class" value="${c.key}" ${cur===c.key?'checked':''}>
+    </label>
+  `).join('');
+  classHost.querySelectorAll('.class-radio').forEach(el => {
+    el.onclick = () => {
+      if (readonly) return;
+      classHost.querySelectorAll('.class-radio').forEach(x => { x.classList.remove('selected'); CLASSIFICACOES.forEach(c => x.classList.remove(c.cls)); x.classList.add(x.dataset.cls); });
+      el.classList.add('selected', el.dataset.cls);
+      el.querySelector('input').checked = true;
+    };
+  });
+
+  // Readonly se já realizado
+  ['rz-tipo','rz-date','rz-pontos-colab','rz-pontos-orient'].forEach(id => {
+    document.getElementById(id).readOnly = !!readonly;
+  });
+  document.querySelector('#modal-realizar .btn-primary').style.display = readonly ? 'none' : '';
+
+  document.getElementById('modal-realizar').classList.add('open');
+}
+function closeRealizarModal() {
+  document.getElementById('modal-realizar').classList.remove('open');
+  _realizingRef = null;
+}
+function saveRealizar() {
+  if (!canEdit()) return notify('Sem permissão', 'error');
+  if (!_realizingRef) return;
+  const { idx, id } = _realizingRef;
+  const pontosColab = document.getElementById('rz-pontos-colab').value.trim();
+  const pontosOrient = document.getElementById('rz-pontos-orient').value.trim();
+  const checked = document.querySelector('input[name="rz-class"]:checked');
+  if (!pontosColab || !pontosOrient) return notify('Preencha os pontos do colab e os pontos orientados', 'error');
+  if (!checked) return notify('Selecione a classificação', 'error');
+  const form = {
+    tipoContrato: document.getElementById('rz-tipo').value.trim(),
+    date: document.getElementById('rz-date').value,
+    pontosColab,
+    pontosOrient,
+    classificacao: checked.value
+  };
+  const update = {
+    [`feedback/oneOnOne/${idx}/${id}/status`]: 'REALIZADO',
+    [`feedback/oneOnOne/${idx}/${id}/form`]: form,
+    [`feedback/oneOnOne/${idx}/${id}/realizedAt`]: Date.now(),
+    [`feedback/oneOnOne/${idx}/${id}/realizedBy`]: currentUser ? (currentUser.displayName || currentUser.email) : 'DESCONHECIDO',
+    [`feedback/oneOnOne/${idx}/${id}/realizedByEmail`]: currentUser ? currentUser.email : null
+  };
+  db.ref().update(update)
+    .then(() => { notify('1:1 concluído ✓'); closeRealizarModal(); })
+    .catch(e => notify('Falha: ' + e.message, 'error'));
+}
+
+// ── Aba RESPOSTAS ──
+function refreshRespostas() {
+  _populateLiderFilter('resp-filter-lider');
+  _populateMesFilter('resp-filter-mes');
+
+  const lider   = document.getElementById('resp-filter-lider').value;
+  const classif = document.getElementById('resp-filter-class').value;
+  const mes     = document.getElementById('resp-filter-mes').value;
+  const search  = (document.getElementById('resp-filter-search').value || '').trim().toLowerCase();
+
+  let list = flatAgendamentos().filter(o => o.status === 'REALIZADO' && o.form);
+  if (lider)   list = list.filter(o => (o.colab['LÍDER']||'').trim() === lider);
+  if (classif) list = list.filter(o => o.form.classificacao === classif);
+  if (mes)     list = list.filter(o => (o.form.date || o.date || '').startsWith(mes));
+  if (search)  list = list.filter(o => (o.colab.COLABORADOR||'').toLowerCase().includes(search));
+
+  list.sort((a,b) => ((b.form.date||b.date||'') ).localeCompare(a.form.date||a.date||''));
+
+  document.getElementById('resp-subtitle').textContent = `${list.length} respostas(s)`;
+
+  const host = document.getElementById('resp-list-host');
+  if (!list.length) {
+    host.innerHTML = '<div class="empty-state"><div class="ico">📝</div><div class="ttl">Nenhuma resposta ainda</div><div>Conclua um 1:1 na aba Agendamentos pra começar.</div></div>';
+    return;
+  }
+
+  host.innerHTML = list.map((o, i) => `
+    <div class="resp-card" id="resp-card-${i}">
+      <div class="resp-card-header" onclick="toggleRespCard(${i})">
+        <div>
+          <strong>${o.colab.COLABORADOR || '—'}</strong>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">${o.colab.EMPRESA || ''} · ${o.colab['LÍDER'] || '—'}</div>
+        </div>
+        <div class="mono" style="color:var(--text2);font-size:12px">${formatDate(o.form.date || o.date)}</div>
+        <div>${classPillHtml(o.form.classificacao)}</div>
+        <div style="font-size:11px;color:var(--text3);text-align:right">por ${o.realizedBy || '—'}</div>
+        <div class="arrow">▶</div>
+      </div>
+      <div class="resp-card-body">
+        <div class="resp-bloco">
+          <h4>Tipo de contrato</h4>
+          <p>${(o.form.tipoContrato || '—').replace(/</g,'&lt;')}</p>
+        </div>
+        <div class="resp-bloco">
+          <h4>Principais pontos trazidos pelo colaborador</h4>
+          <p>${(o.form.pontosColab || '—').replace(/</g,'&lt;')}</p>
+        </div>
+        <div class="resp-bloco">
+          <h4>Pontos orientados pelo líder</h4>
+          <p>${(o.form.pontosOrient || '—').replace(/</g,'&lt;')}</p>
+        </div>
+        <div style="margin-top:14px;display:flex;gap:8px">
+          <button class="action-btn primary" onclick="event.stopPropagation();openRealizarModal('${o.idx}','${o.id}',true)">👁 Abrir em modal</button>
+          ${canEdit() ? `<button class="action-btn" onclick="event.stopPropagation();reabrirParaEditar('${o.idx}','${o.id}')">✏ Reabrir e editar</button>` : ''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+function toggleRespCard(i) {
+  const el = document.getElementById('resp-card-' + i);
+  if (el) el.classList.toggle('open');
+}
+function reabrirParaEditar(idx, id) {
+  if (!canEdit()) return notify('Sem permissão', 'error');
+  openRealizarModal(idx, id, false);
+}
+
+function exportRespostasCSV() {
+  let list = flatAgendamentos().filter(o => o.status === 'REALIZADO' && o.form);
+  const lider   = document.getElementById('resp-filter-lider').value;
+  const classif = document.getElementById('resp-filter-class').value;
+  const mes     = document.getElementById('resp-filter-mes').value;
+  if (lider)   list = list.filter(o => (o.colab['LÍDER']||'').trim() === lider);
+  if (classif) list = list.filter(o => o.form.classificacao === classif);
+  if (mes)     list = list.filter(o => (o.form.date || o.date || '').startsWith(mes));
+  if (!list.length) return notify('Nada pra exportar com esses filtros', 'error');
+
+  const esc = s => `"${(s||'').toString().replace(/"/g,'""')}"`;
+  const header = ['Data','Colaborador','Empresa','Tipo Contrato','Líder','Classificação','Pontos do Colaborador','Pontos Orientados','Realizado por','Realizado em'];
+  const rows = list.map(o => [
+    o.form.date || o.date,
+    o.colab.COLABORADOR || '',
+    o.colab.EMPRESA || '',
+    o.form.tipoContrato || '',
+    o.colab['LÍDER'] || '',
+    o.form.classificacao || '',
+    o.form.pontosColab || '',
+    o.form.pontosOrient || '',
+    o.realizedBy || '',
+    o.realizedAt ? new Date(o.realizedAt).toLocaleString('pt-BR') : ''
+  ].map(esc).join(','));
+  const csv = '﻿' + header.map(esc).join(',') + '\n' + rows.join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `1on1_respostas_${today()}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  notify('CSV exportado');
+}
+
+// Sobrescreve saveAgendamento pra suportar edição
+function saveAgendamento() {
+  if (!canEdit()) { notify('Sem permissão', 'error'); return; }
+  const nome = document.getElementById('ag-colab').value.trim();
+  const date = document.getElementById('ag-date').value;
+  const time = document.getElementById('ag-time').value;
+  const obs  = document.getElementById('ag-obs').value.trim();
+  const idx = findColabByName(nome);
+  if (idx === -1) { notify('Selecione um colaborador da lista', 'error'); return; }
+  if (!date) { notify('Informe a data', 'error'); return; }
+  const data = {
+    colabIdx: idx,
+    date, time: time || null, obs: obs || null,
+    by: currentUser ? (currentUser.displayName || currentUser.email) : 'DESCONHECIDO',
+    byEmail: currentUser ? currentUser.email : null,
+    at: Date.now()
+  };
+  if (_editingAgRef && _editingAgRef.idx === idx) {
+    // Edição — atualiza campos sem mexer no status/form
+    const upd = {};
+    upd[`feedback/oneOnOne/${_editingAgRef.idx}/${_editingAgRef.id}/date`] = data.date;
+    upd[`feedback/oneOnOne/${_editingAgRef.idx}/${_editingAgRef.id}/time`] = data.time;
+    upd[`feedback/oneOnOne/${_editingAgRef.idx}/${_editingAgRef.id}/obs`]  = data.obs;
+    db.ref().update(upd)
+      .then(() => { notify('Agendamento atualizado'); closeAgendarModal(); _editingAgRef = null; })
+      .catch(e => notify('Falha: ' + e.message, 'error'));
+  } else {
+    data.status = 'AGENDADO';
+    db.ref(`feedback/oneOnOne/${idx}`).push(data)
+      .then(() => { notify(`1:1 agendado pra ${allColabs[idx].COLABORADOR}`); closeAgendarModal(); })
+      .catch(err => notify('Falha: ' + (err.message || err), 'error'));
+  }
+}
+// limpar _editingAgRef ao fechar o modal de agendar
+const _origCloseAgendarModal = closeAgendarModal;
+closeAgendarModal = function() { _editingAgRef = null; _origCloseAgendarModal(); };
 
 // ── Listeners ──
 function listenFirebase() {
