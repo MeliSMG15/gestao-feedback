@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Gestão de Feedback · MELI SMG15</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%23FFE600'/%3E%3Cpath d='M6 24 Q10 14 15 19 Q19 24 22 20 Q25 16 29 20 Q34 24 38 16' stroke='%232D3277' stroke-width='3.5' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cellipse cx='32' cy='32' rx='30' ry='28' fill='%23FFE600'/%3E%3Ctext x='32' y='28' text-anchor='middle' font-family='Arial Black,sans-serif' font-weight='900' font-size='15' fill='%232D3277'%3ESMG%3C/text%3E%3Ctext x='32' y='46' text-anchor='middle' font-family='Arial Black,sans-serif' font-weight='900' font-size='15' fill='%232D3277'%3E15%3C/text%3E%3C/svg%3E">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -64,12 +64,12 @@ body {
 }
 .brand { display: flex; align-items: center; gap: 14px; }
 .brand-icon {
-  width: 44px; height: 32px;
-  background: var(--meli-yellow);
-  border-radius: 6px;
+  width: 44px; height: 38px;
+  background: transparent;
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 2px 6px rgba(255,230,0,0.25);
+  filter: drop-shadow(0 2px 4px rgba(255,230,0,0.30));
 }
+.brand-icon svg { display: block; }
 .brand-name { font-weight: 800; font-size: 16px; letter-spacing: -0.3px; }
 .brand-sub { font-size: 11px; color: rgba(255,255,255,0.6); font-family: 'DM Mono', monospace; letter-spacing: 0.4px; }
 .tabs { display: flex; gap: 4px; }
@@ -714,11 +714,11 @@ body {
 <!-- TOPBAR -->
 <div class="topbar">
   <div class="brand">
-    <div class="brand-icon" title="Mercado Livre">
-      <svg viewBox="0 0 40 28" width="34" height="22" xmlns="http://www.w3.org/2000/svg" aria-label="ML">
-        <path d="M4 18 Q8 8 13 13 Q17 18 20 14 Q23 10 27 14 Q32 18 36 10" stroke="#2D3277" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-        <circle cx="10" cy="12" r="1.6" fill="#2D3277"/>
-        <circle cx="30" cy="12" r="1.6" fill="#2D3277"/>
+    <div class="brand-icon" title="SMG 15">
+      <svg viewBox="0 0 64 56" width="40" height="36" xmlns="http://www.w3.org/2000/svg" aria-label="SMG 15">
+        <ellipse cx="32" cy="28" rx="28" ry="24" fill="#FFE600"/>
+        <text x="32" y="24" text-anchor="middle" font-family="Arial Black, sans-serif" font-weight="900" font-size="14" fill="#2D3277">SMG</text>
+        <text x="32" y="42" text-anchor="middle" font-family="Arial Black, sans-serif" font-weight="900" font-size="14" fill="#2D3277">15</text>
       </svg>
     </div>
     <div>
