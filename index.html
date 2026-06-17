@@ -185,9 +185,19 @@ body {
 .kpi-content { flex: 1; min-width: 0; }
 .kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text3); font-weight: 700; margin-bottom: 4px; }
 .kpi-value { font-size: 32px; font-weight: 900; color: var(--text); line-height: 1.05; letter-spacing: -1px; margin-bottom: 4px; }
-.kpi-sub { font-size: 12px; color: var(--text2); font-weight: 500; }
+.kpi-sub { font-size: 12px; color: var(--text2); font-weight: 500; margin-top: 6px; }
 .kpi-sub span { font-family: 'DM Mono', monospace; font-weight: 700; color: var(--text); }
-.kpi-progress { margin-top: 8px; height: 6px; background: var(--surface3); border-radius: 3px; overflow: hidden; }
+.kpi-mini { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.kpi-mini-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 8px; border-radius: 6px;
+  font-size: 10.5px; font-weight: 600; letter-spacing: 0.3px;
+  font-family: 'Inter', sans-serif;
+}
+.kpi-mini-tag strong { font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 800; }
+.kpi-mini-tag.meli { background: #fff8c8; color: #8a6800; }
+.kpi-mini-tag.temp { background: #ece1ff; color: #5a39c0; }
+.kpi-progress { margin-top: 10px; height: 6px; background: var(--surface3); border-radius: 3px; overflow: hidden; }
 .kpi-progress-fill { height: 100%; background: linear-gradient(90deg, #16a34a, #4ade80); border-radius: 3px; transition: width 0.6s ease; }
 
 /* Botão grande */
@@ -295,22 +305,35 @@ body {
   border: 1px solid var(--border);
   border-radius: 12px;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 .pend-card-header {
   background: #1a1a1a;
   color: #fff;
-  padding: 14px 18px;
+  padding: 10px 14px;
   font-weight: 800;
-  font-size: 16px;
-  letter-spacing: 1px;
+  font-size: 13px;
+  letter-spacing: 0.8px;
   display: flex; justify-content: space-between; align-items: center;
+  flex-shrink: 0;
 }
-.pend-card-header .count { background: rgba(255,255,255,0.15); padding: 3px 10px; border-radius: 12px; font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 700; }
-.pend-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.pend-table th { background: var(--surface3); color: var(--text2); font-weight: 700; padding: 8px 12px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
-.pend-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
-.pend-table tr:hover td { background: var(--surface2); }
-.pend-empty { padding: 40px 20px; text-align: center; color: var(--text3); }
+.pend-card-header .count { background: rgba(255,255,255,0.18); padding: 2px 10px; border-radius: 12px; font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 700; }
+.pend-scroll {
+  max-height: 280px;
+  overflow-y: auto;
+}
+.pend-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.pend-table thead th {
+  position: sticky; top: 0; z-index: 1;
+  background: var(--surface3); color: var(--text2);
+  font-weight: 700; padding: 7px 12px; text-align: left;
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.pend-table td { padding: 6px 12px; border-bottom: 1px solid var(--border); }
+.pend-table tbody tr:hover td { background: var(--surface2); }
+.pend-table tbody tr:last-child td { border-bottom: none; }
+.pend-empty { padding: 30px 20px; text-align: center; color: var(--text3); font-size: 13px; }
 
 /* CLASSIFICAÇÃO DE DESEMPENHO */
 .perf-wrap {
@@ -324,11 +347,31 @@ body {
 .perf-header h2 { display: inline-block; font-size: 16px; font-weight: 800; padding: 8px 24px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; }
 .perf-body { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; align-items: center; background: var(--surface3); padding: 20px; border-radius: 10px; }
 @media (max-width: 800px) { .perf-body { grid-template-columns: 1fr; } }
-.perf-bars { display: flex; flex-direction: column; gap: 14px; }
-.perf-bar-row { display: grid; grid-template-columns: 180px 1fr; gap: 12px; align-items: center; }
-.perf-bar-label { font-size: 13px; color: var(--text); text-align: right; }
-.perf-bar { position: relative; height: 30px; background: rgba(255,230,0,0.4); border: 1px solid #c2a800; border-radius: 3px; }
-.perf-bar .fill { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); font-weight: 800; font-size: 14px; color: var(--text); }
+.perf-bars { display: flex; flex-direction: column; gap: 12px; }
+.perf-bar-row { display: grid; grid-template-columns: 200px 1fr; gap: 14px; align-items: center; }
+.perf-bar-label { font-size: 13px; color: var(--text); text-align: right; font-weight: 500; }
+.perf-bar {
+  position: relative; height: 32px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  --fill: 0%;
+}
+.perf-bar::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: var(--fill); border-radius: 5px 0 0 5px;
+  transition: width 0.6s ease;
+}
+.perf-bar.alinhado::before        { background: linear-gradient(90deg, #16a34a, #4ade80); }
+.perf-bar.necessita::before       { background: linear-gradient(90deg, #d97706, #fbbf24); }
+.perf-bar.promocao::before        { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
+.perf-bar.internalizacao::before  { background: linear-gradient(90deg, #0891b2, #22d3ee); }
+.perf-bar .fill {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  font-weight: 800; font-size: 14px; color: var(--text);
+  z-index: 1; font-family: 'DM Mono', monospace;
+}
 .perf-pie { display: flex; align-items: center; justify-content: center; }
 .perf-pie canvas { max-width: 220px; }
 
@@ -625,7 +668,10 @@ body {
         <div class="kpi-content">
           <div class="kpi-label">Total HC</div>
           <div class="kpi-value" id="kpi-total">—</div>
-          <div class="kpi-sub"><span id="kpi-meli">—</span> MELI · <span id="kpi-temp">—</span> Temp</div>
+          <div class="kpi-mini">
+            <span class="kpi-mini-tag meli">MELI <strong id="kpi-meli">—</strong></span>
+            <span class="kpi-mini-tag temp">TEMP <strong id="kpi-temp">—</strong></span>
+          </div>
         </div>
       </div>
       <div class="kpi-card realizado">
@@ -633,8 +679,12 @@ body {
         <div class="kpi-content">
           <div class="kpi-label">1:1 Realizados</div>
           <div class="kpi-value" id="kpi-total-real">—</div>
-          <div class="kpi-sub" id="kpi-real-sub">— do total no mês</div>
+          <div class="kpi-mini">
+            <span class="kpi-mini-tag meli">MELI <strong id="kpi-meli-real">0</strong></span>
+            <span class="kpi-mini-tag temp">TEMP <strong id="kpi-temp-real">0</strong></span>
+          </div>
           <div class="kpi-progress"><div class="kpi-progress-fill" id="kpi-real-bar" style="width:0%"></div></div>
+          <div class="kpi-sub" id="kpi-real-sub">— do total no mês</div>
         </div>
       </div>
       <div class="kpi-card agendado">
@@ -642,6 +692,10 @@ body {
         <div class="kpi-content">
           <div class="kpi-label">1:1 Agendados</div>
           <div class="kpi-value" id="kpi-total-ag">—</div>
+          <div class="kpi-mini">
+            <span class="kpi-mini-tag meli">MELI <strong id="kpi-meli-ag">0</strong></span>
+            <span class="kpi-mini-tag temp">TEMP <strong id="kpi-temp-ag">0</strong></span>
+          </div>
           <div class="kpi-sub" id="kpi-ag-sub">— aguardando</div>
         </div>
       </div>
@@ -650,6 +704,10 @@ body {
         <div class="kpi-content">
           <div class="kpi-label">Pendentes</div>
           <div class="kpi-value" id="kpi-pendentes">—</div>
+          <div class="kpi-mini">
+            <span class="kpi-mini-tag meli">MELI <strong id="kpi-meli-pend">0</strong></span>
+            <span class="kpi-mini-tag temp">TEMP <strong id="kpi-temp-pend">0</strong></span>
+          </div>
           <div class="kpi-sub">Sem 1:1 no mês</div>
         </div>
       </div>
@@ -685,9 +743,10 @@ body {
       <div class="perf-header"><h2>CLASSIFICAÇÃO DE DESEMPENHO</h2></div>
       <div class="perf-body">
         <div class="perf-bars" id="perf-bars">
-          <div class="perf-bar-row"><div class="perf-bar-label">Alinhado</div><div class="perf-bar"><div class="fill" id="perf-alin">0</div></div></div>
-          <div class="perf-bar-row"><div class="perf-bar-label">Necessita alinhamento</div><div class="perf-bar"><div class="fill" id="perf-nec">0</div></div></div>
-          <div class="perf-bar-row"><div class="perf-bar-label">Potencial para promoção</div><div class="perf-bar"><div class="fill" id="perf-pot">0</div></div></div>
+          <div class="perf-bar-row"><div class="perf-bar-label">Alinhado</div><div class="perf-bar alinhado"><div class="fill" id="perf-alin">0</div></div></div>
+          <div class="perf-bar-row"><div class="perf-bar-label">Necessita alinhamento</div><div class="perf-bar necessita"><div class="fill" id="perf-nec">0</div></div></div>
+          <div class="perf-bar-row"><div class="perf-bar-label">Potencial para promoção</div><div class="perf-bar promocao"><div class="fill" id="perf-pot">0</div></div></div>
+          <div class="perf-bar-row"><div class="perf-bar-label">Potencial para internalização</div><div class="perf-bar internalizacao"><div class="fill" id="perf-int">0</div></div></div>
         </div>
         <div class="perf-pie"><canvas id="perf-pie-canvas" width="220" height="220"></canvas></div>
       </div>
@@ -943,32 +1002,42 @@ function refreshDashboard() {
   const tempCt = colabs.length - meliCt;
   const totalHc = colabs.length;
 
-  // Conta 1:1 do mês
+  // Conta 1:1 do mês com breakdown por time
   const monthPrefix = mes + '-';
-  let realizado = 0, agendado = 0;
-  const colabsComAg = new Set();
+  let meliReal=0, meliAg=0, tempReal=0, tempAg=0;
+  const meliComAg = new Set(), tempComAg = new Set();
   Object.entries(oneOnOnes).forEach(([idx, items]) => {
     const colab = allColabs[parseInt(idx)];
     if (!colab || !isActive(colab)) return;
     if (lider && (colab['LÍDER']||'').trim() !== lider) return;
+    const isM = isMeli(colab);
     Object.values(items).forEach(o => {
       if (!o.date || !o.date.startsWith(monthPrefix)) return;
       if (o.status === 'CANCELADO') return;
-      colabsComAg.add(parseInt(idx));
-      if (o.status === 'REALIZADO') realizado++;
-      else agendado++;
+      (isM ? meliComAg : tempComAg).add(parseInt(idx));
+      if (o.status === 'REALIZADO') { if (isM) meliReal++; else tempReal++; }
+      else                          { if (isM) meliAg++;   else tempAg++;   }
     });
   });
-  const pendentes = Math.max(0, totalHc - colabsComAg.size);
-  const totalMes = realizado + agendado;
+  const realizado = meliReal + tempReal;
+  const agendado  = meliAg + tempAg;
+  const meliPend  = Math.max(0, meliCt - meliComAg.size);
+  const tempPend  = Math.max(0, tempCt - tempComAg.size);
+  const pendentes = meliPend + tempPend;
   const pctReal = totalHc > 0 ? Math.round(realizado / totalHc * 100) : 0;
 
   document.getElementById('kpi-total').textContent = totalHc;
   document.getElementById('kpi-meli').textContent  = meliCt;
   document.getElementById('kpi-temp').textContent  = tempCt;
   document.getElementById('kpi-total-real').textContent = realizado;
+  document.getElementById('kpi-meli-real').textContent = meliReal;
+  document.getElementById('kpi-temp-real').textContent = tempReal;
   document.getElementById('kpi-total-ag').textContent   = agendado;
+  document.getElementById('kpi-meli-ag').textContent = meliAg;
+  document.getElementById('kpi-temp-ag').textContent = tempAg;
   document.getElementById('kpi-pendentes').textContent  = pendentes;
+  document.getElementById('kpi-meli-pend').textContent = meliPend;
+  document.getElementById('kpi-temp-pend').textContent = tempPend;
   document.getElementById('kpi-real-sub').textContent = `${pctReal}% do total no mês`;
   document.getElementById('kpi-ag-sub').textContent   = agendado === 0 ? 'aguardando' : (agendado === 1 ? '1 1:1 aguardando' : `${agendado} 1:1 aguardando`);
   document.getElementById('kpi-real-bar').style.width = pctReal + '%';
@@ -1002,9 +1071,9 @@ function renderPendencias() {
     document.getElementById(elId+'-count').textContent = arr.length;
     const host = document.getElementById(elId+'-list');
     if (!arr.length) { host.innerHTML = '<div class="pend-empty">✓ Todos com 1:1 agendado neste mês</div>'; return; }
-    host.innerHTML = `<table class="pend-table"><thead><tr><th>Nome</th><th>Empresa</th><th>Líder</th></tr></thead><tbody>${
+    host.innerHTML = `<div class="pend-scroll"><table class="pend-table"><thead><tr><th>Nome</th><th>Empresa</th><th>Líder</th></tr></thead><tbody>${
       arr.map(r => `<tr><td>${r.COLABORADOR||''}</td><td>${r.EMPRESA||''}</td><td>${r['LÍDER']||'—'}</td></tr>`).join('')
-    }</tbody></table>`;
+    }</tbody></table></div>`;
   }
   render('pend-meli', meli);
   render('pend-temp', temp);
@@ -1013,34 +1082,52 @@ function renderPendencias() {
 function renderPerformance() {
   const mes = document.getElementById('dash-month-filter').value || today().slice(0,7);
   const lider = document.getElementById('dash-lider-filter').value;
-  let alin=0, nec=0, pot=0;
+  let alin=0, nec=0, pot=0, intr=0;
+
+  function normClass(s) {
+    return (s||'').toString().trim().toLowerCase()
+      .normalize('NFD').replace(/[̀-ͯ]/g, '');   // remove acentos
+  }
   Object.entries(oneOnOnes).forEach(([idx, items]) => {
     const colab = allColabs[idx];
     if (!colab || !isActive(colab)) return;
     if (lider && (colab['LÍDER']||'').trim() !== lider) return;
     Object.values(items).forEach(o => {
-      if (!o.date || !o.date.startsWith(mes)) return;
+      // Filtra por mês — usa form.date (data do 1:1) ou date (do agendamento)
+      const d = (o.form && o.form.date) || o.date || '';
+      if (!d.startsWith(mes)) return;
       if (o.status !== 'REALIZADO') return;
-      const c = (o.classificacao||'').toLowerCase();
+      // A classificação fica em o.form.classificacao (e não o.classificacao)
+      const c = normClass(o.form && o.form.classificacao);
       if (c === 'alinhado') alin++;
       else if (c === 'necessita alinhamento' || c === 'necessita') nec++;
-      else if (c === 'potencial para promocao' || c === 'potencial para promoção' || c === 'potencial') pot++;
+      else if (c === 'potencial para promocao' || c === 'potencial') pot++;
+      else if (c === 'potencial para internalizacao' || c === 'internalizacao') intr++;
     });
   });
-  const total = Math.max(1, alin + nec + pot);
-  const max = Math.max(alin, nec, pot, 1);
-  const setBar = (id, val) => {
+
+  const max = Math.max(alin, nec, pot, intr, 1);
+  function setBar(id, val) {
     const el = document.getElementById(id);
+    if (!el) return;
     el.textContent = val;
     const fill = (val / max) * 100;
     const bar = el.parentElement;
-    bar.style.background = `linear-gradient(to right, rgba(255,230,0,0.55) ${fill}%, transparent ${fill}%)`;
-  };
+    // Mantém a cor da classe da .perf-bar — só anima a largura via fill-bar pseudo
+    bar.style.setProperty('--fill', fill + '%');
+  }
   setBar('perf-alin', alin);
   setBar('perf-nec',  nec);
   setBar('perf-pot',  pot);
-  // Pie
-  drawPie([{label:'Alinhado',value:alin,color:'#FFE600'},{label:'Necessita',value:nec,color:'#fde68a'},{label:'Potencial',value:pot,color:'#fbbf24'}]);
+  setBar('perf-int',  intr);
+
+  // Pie com 4 fatias
+  drawPie([
+    { label: 'Alinhado',       value: alin, color: '#16a34a' },
+    { label: 'Necessita',      value: nec,  color: '#f59e0b' },
+    { label: 'Promoção',       value: pot,  color: '#7c3aed' },
+    { label: 'Internalização', value: intr, color: '#0891b2' }
+  ]);
 }
 
 function drawPie(slices) {
