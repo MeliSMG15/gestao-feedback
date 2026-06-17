@@ -353,6 +353,8 @@ body {
 .comp-bar-fill.necessita      { background: linear-gradient(90deg, #d97706, #fbbf24); }
 .comp-bar-fill.promocao       { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
 .comp-bar-fill.internalizacao { background: linear-gradient(90deg, #0891b2, #22d3ee); }
+.comp-bar-fill.atrasados      { background: linear-gradient(90deg, #c2261d, #f87171); }
+.comp-card-warn { border: 1px solid rgba(194,38,29,0.35); background: linear-gradient(to bottom, rgba(254,226,226,0.4), var(--surface)); }
 .comp-bar-val {
   position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
   font-family: 'DM Mono', monospace; font-weight: 800;
@@ -890,6 +892,15 @@ body {
 
     <!-- KPI line — total realizados e por classificação -->
     <div class="comp-kpi-row" id="comp-kpi-row"></div>
+
+    <!-- Card destaque: Quem agendou e não realizou na data -->
+    <div class="comp-mini-card comp-card-warn" style="margin-bottom:16px">
+      <div class="comp-card-title">
+        <span class="status-pill ATRASADO">⏰ Agendou e NÃO realizou na data</span>
+        <span class="comp-card-total" id="comp-total-late" style="color:#c2261d">0</span>
+      </div>
+      <div class="comp-bars" id="comp-bars-late"></div>
+    </div>
 
     <!-- 4 mini-charts: 1 por classificação, líderes em barras -->
     <div class="comp-grid">
@@ -1716,30 +1727,46 @@ function refreshComparativo() {
     return null;
   }
 
-  // byLider: { LIDER: { alin, nec, pot, int, total } }
+  // byLider: { LIDER: { alin, nec, pot, int, total, atrasados, agendados } }
   const byLider = {};
+  const tHoje = today();
+  function ensure(lider) {
+    if (!byLider[lider]) byLider[lider] = { alin: 0, nec: 0, pot: 0, int: 0, total: 0, atrasados: 0, agendados: 0 };
+  }
   Object.entries(oneOnOnes).forEach(([idx, items]) => {
     const colab = allColabs[parseInt(idx)];
     if (!colab || !isActive(colab)) return;
     const lider = (colab['LÍDER'] || '—').trim() || '—';
     Object.values(items).forEach(o => {
-      if (o.status !== 'REALIZADO' || !o.form) return;
       const d = (o.form && o.form.date) || o.date || '';
       if (!d.startsWith(mes)) return;
-      const key = classKey(o.form.classificacao);
-      if (!key) return;
-      if (!byLider[lider]) byLider[lider] = { alin: 0, nec: 0, pot: 0, int: 0, total: 0 };
-      byLider[lider][key]++;
-      byLider[lider].total++;
+      ensure(lider);
+      // Conta REALIZADOS por classificação
+      if (o.status === 'REALIZADO' && o.form) {
+        const key = classKey(o.form.classificacao);
+        if (key) {
+          byLider[lider][key]++;
+          byLider[lider].total++;
+        }
+      }
+      // Conta ATRASADOS: agendados cuja data já passou e não realizaram
+      else if ((o.status === 'AGENDADO' || !o.status) && o.date && o.date < tHoje) {
+        byLider[lider].atrasados++;
+      }
+      // Conta AGENDADOS no mês total (independente de status — inclusivo)
+      if ((o.status === 'AGENDADO' || !o.status || o.status === 'REALIZADO') && o.date) {
+        byLider[lider].agendados++;
+      }
     });
   });
 
-  const lideres = Object.keys(byLider).sort((a,b) => byLider[b].total - byLider[a].total || a.localeCompare(b));
+  const lideres = Object.keys(byLider).sort((a,b) =>
+    (byLider[b].total + byLider[b].atrasados) - (byLider[a].total + byLider[a].atrasados) || a.localeCompare(b));
 
   // Totais gerais
-  const totals = { alin: 0, nec: 0, pot: 0, int: 0, total: 0 };
+  const totals = { alin: 0, nec: 0, pot: 0, int: 0, total: 0, atrasados: 0, agendados: 0 };
   lideres.forEach(l => {
-    ['alin','nec','pot','int','total'].forEach(k => totals[k] += byLider[l][k]);
+    ['alin','nec','pot','int','total','atrasados','agendados'].forEach(k => totals[k] += byLider[l][k]);
   });
 
   document.getElementById('comp-subtitle').textContent =
@@ -1750,6 +1777,7 @@ function refreshComparativo() {
   // KPI row
   document.getElementById('comp-kpi-row').innerHTML = `
     <div class="comp-kpi"><div class="icon">📊</div><div><div class="label">Total realizados</div><div class="value">${totals.total}</div></div></div>
+    <div class="comp-kpi"><div class="icon">⏰</div><div><div class="label">Atrasados</div><div class="value" style="color:#c2261d">${totals.atrasados}</div></div></div>
     <div class="comp-kpi"><div class="icon">✅</div><div><div class="label">Alinhados</div><div class="value" style="color:#16a34a">${totals.alin}</div></div></div>
     <div class="comp-kpi"><div class="icon">⚠</div><div><div class="label">Necessitam</div><div class="value" style="color:#d97706">${totals.nec}</div></div></div>
     <div class="comp-kpi"><div class="icon">⭐</div><div><div class="label">Promoção</div><div class="value" style="color:#7c3aed">${totals.pot}</div></div></div>
@@ -1778,6 +1806,7 @@ function refreshComparativo() {
       </div>`;
     }).join('');
   }
+  renderBars('comp-bars-late', 'comp-total-late', 'atrasados', 'atrasados');
   renderBars('comp-bars-alin', 'comp-total-alin', 'alin', 'alinhado');
   renderBars('comp-bars-nec',  'comp-total-nec',  'nec',  'necessita');
   renderBars('comp-bars-pot',  'comp-total-pot',  'pot',  'promocao');
@@ -1794,6 +1823,13 @@ function refreshComparativo() {
     const pct = total > 0 ? Math.round(v / total * 100) : 0;
     return `<td class="${cls}">${v}<span class="cell-pct">${pct}%</span></td>`;
   }
+  function cellCumprimento(real, atra) {
+    const denom = real + atra;
+    if (denom === 0) return '<td><span style="color:var(--text3)">—</span></td>';
+    const pct = Math.round(real / denom * 100);
+    const color = pct >= 80 ? '#16a34a' : pct >= 50 ? '#d97706' : '#c2261d';
+    return `<td><span style="color:${color};font-weight:800">${pct}%</span><span class="cell-pct">${real}/${denom}</span></td>`;
+  }
   const rows = lideres.map(l => {
     const r = byLider[l];
     return `<tr>
@@ -1803,6 +1839,8 @@ function refreshComparativo() {
       ${cell(r.pot,  r.total, 'cell-promocao')}
       ${cell(r.int,  r.total, 'cell-internalizacao')}
       <td><strong>${r.total}</strong></td>
+      <td style="color:#c2261d">${r.atrasados || '<span style="color:var(--text3)">—</span>'}</td>
+      ${cellCumprimento(r.total, r.atrasados)}
     </tr>`;
   }).join('');
   // Linha de total geral
@@ -1813,6 +1851,8 @@ function refreshComparativo() {
     <td class="cell-promocao">${totals.pot}</td>
     <td class="cell-internalizacao">${totals.int}</td>
     <td>${totals.total}</td>
+    <td style="color:#c2261d">${totals.atrasados}</td>
+    ${cellCumprimento(totals.total, totals.atrasados)}
   </tr>`;
 
   tbHost.innerHTML = `<table class="comp-table">
@@ -1822,7 +1862,9 @@ function refreshComparativo() {
       <th>⚠ Necessita</th>
       <th>⭐ Promoção</th>
       <th>🎯 Internalização</th>
-      <th>Total</th>
+      <th>Realizados</th>
+      <th>⏰ Atrasados</th>
+      <th>% Cumprimento</th>
     </tr></thead>
     <tbody>${rows}${totalRow}</tbody>
   </table>`;
