@@ -143,84 +143,144 @@ body {
   box-shadow: 0 1px 3px rgba(30, 60, 110, 0.04);
 }
 
-/* KPI PANEL — caixas tipo "TOTAL HC / HC MELI / HC TEMP" */
-.kpi-grid {
+/* ── KPI cards modernos ── */
+.kpi-cards {
   display: grid;
-  grid-template-columns: minmax(220px, 1.1fr) minmax(220px, 0.9fr) minmax(280px, 1.1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   margin-bottom: 20px;
 }
-@media (max-width: 1000px) { .kpi-grid { grid-template-columns: 1fr; } }
-
-.kpi-tree { display: flex; align-items: stretch; gap: 14px; }
-.kpi-tree .col-left { display: flex; flex-direction: column; justify-content: space-evenly; gap: 12px; flex: 0 0 140px; }
-.kpi-tree .col-mid { display: flex; flex-direction: column; justify-content: space-evenly; gap: 12px; flex: 1; }
-.kpi-tree .col-right { display: flex; flex-direction: column; justify-content: center; flex: 0 0 130px; }
-.kpi-cell {
-  border: 2px solid #1a1a1a;
-  background: #fff;
-  padding: 10px 14px;
-  text-align: center;
-}
-.kpi-cell .lbl { font-size: 11px; color: #222; font-weight: 700; letter-spacing: 0.4px; }
-.kpi-cell .val { font-size: 26px; font-weight: 900; color: #111; line-height: 1.2; }
-.kpi-cell.realizado { background: #d6f4e2; border-color: #15803d; }
-.kpi-cell.agendado  { background: #e5e7eb; border-color: #6b7280; }
-.kpi-cell.big .val { font-size: 36px; }
-
-.action-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.action-card {
-  background: var(--meli-yellow);
-  border-radius: 12px;
-  padding: 22px 18px;
-  text-align: center;
-  cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s;
-  display: flex; flex-direction: column; align-items: center; gap: 10px;
-  border: none;
-  font-family: inherit;
-  color: var(--meli-dark);
-  text-decoration: none;
-}
-.action-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(255, 230, 0, 0.35); }
-.action-card .ico { font-size: 36px; }
-.action-card .ttl { font-size: 14px; font-weight: 800; line-height: 1.25; }
-
-.next-list-wrap {
+@media (max-width: 1100px) { .kpi-cards { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px)  { .kpi-cards { grid-template-columns: 1fr; } }
+.kpi-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 18px 20px;
-  margin-bottom: 20px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(30, 60, 110, 0.04);
+  transition: transform 0.15s, box-shadow 0.15s;
 }
+.kpi-card:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(30, 60, 110, 0.10); }
+.kpi-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+}
+.kpi-card.total::before     { background: linear-gradient(90deg, #2D3277, #4a51a8); }
+.kpi-card.realizado::before { background: linear-gradient(90deg, #16a34a, #4ade80); }
+.kpi-card.agendado::before  { background: linear-gradient(90deg, #2563eb, #60a5fa); }
+.kpi-card.pendente::before  { background: linear-gradient(90deg, #d97706, #fbbf24); }
+.kpi-icon {
+  width: 48px; height: 48px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; flex-shrink: 0;
+}
+.kpi-card.total    .kpi-icon { background: rgba(45,50,119,0.10); }
+.kpi-card.realizado .kpi-icon { background: rgba(22,163,74,0.10); }
+.kpi-card.agendado .kpi-icon { background: rgba(37,99,235,0.10); }
+.kpi-card.pendente .kpi-icon { background: rgba(217,119,6,0.10); }
+.kpi-content { flex: 1; min-width: 0; }
+.kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text3); font-weight: 700; margin-bottom: 4px; }
+.kpi-value { font-size: 32px; font-weight: 900; color: var(--text); line-height: 1.05; letter-spacing: -1px; margin-bottom: 4px; }
+.kpi-sub { font-size: 12px; color: var(--text2); font-weight: 500; }
+.kpi-sub span { font-family: 'DM Mono', monospace; font-weight: 700; color: var(--text); }
+.kpi-progress { margin-top: 8px; height: 6px; background: var(--surface3); border-radius: 3px; overflow: hidden; }
+.kpi-progress-fill { height: 100%; background: linear-gradient(90deg, #16a34a, #4ade80); border-radius: 3px; transition: width 0.6s ease; }
+
+/* Botão grande */
+.btn.big { padding: 12px 24px; font-size: 14px; font-weight: 700; box-shadow: 0 4px 12px rgba(30, 106, 224, 0.20); }
+.btn.big:hover:not(:disabled) { box-shadow: 0 6px 16px rgba(30, 106, 224, 0.30); transform: translateY(-1px); }
+
+/* Toolbar do card 1:1 */
+.card-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 14px; flex-wrap: wrap;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+}
+.card-title-block { display: flex; flex-direction: column; }
+.section-title-inline { font-size: 15px; font-weight: 800; color: var(--text); }
+.card-subtitle { font-size: 12px; color: var(--text3); font-family: 'DM Mono', monospace; margin-top: 2px; }
+.card-filters { display: flex; gap: 8px; flex-wrap: wrap; }
+.filter-sm { padding: 6px 10px; font-size: 12px; }
+
+/* Tabela compacta de 1:1 */
+.next-table-wrap { max-height: 480px; overflow: auto; }
+.next-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.next-table thead th {
+  position: sticky; top: 0;
+  background: var(--surface2);
+  color: var(--text2);
+  font-weight: 700;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 9px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  z-index: 1;
+}
+.next-table tbody td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.next-table tbody tr:hover td { background: var(--surface2); }
+.next-table tbody tr:last-child td { border-bottom: none; }
+.next-table .col-nome { font-weight: 600; color: var(--text); }
+.next-table .col-nome small { display: block; font-size: 10.5px; color: var(--text3); font-weight: 500; margin-top: 1px; }
+.next-table .badge-empresa {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+.next-table .badge-empresa.MELI { background: #fff8c8; color: #8a6800; }
+.next-table .badge-empresa.GI   { background: #ece1ff; color: #5a39c0; }
+.next-table .badge-empresa.RAND { background: #d6f1f8; color: #0d7a87; }
+.next-table .badge-empresa.ADEC { background: #fde0dd; color: #c2261d; }
+.next-table .badge-empresa.CARP { background: #fee2e2; color: #991b1b; }
+.next-table .badge-empresa.PT   { background: #d1f4ee; color: #0d7a6b; }
+.next-table .badge-empresa.OTHER { background: var(--surface3); color: var(--text2); }
+.next-table .data-cell {
+  font-family: 'DM Mono', monospace; font-size: 11.5px;
+  padding: 3px 8px; border-radius: 5px;
+  display: inline-block;
+  background: var(--surface2); color: var(--text);
+}
+.next-table .data-cell.atrasado { background: #fde0dd; color: #c2261d; }
+.next-table .data-cell.hoje     { background: #fef3c7; color: #92400e; }
+.next-table .data-cell.realizado { background: #d6f4e2; color: #166534; }
+.next-table .actions-cell { white-space: nowrap; text-align: right; }
+.next-table .icon-btn {
+  background: transparent; border: 1px solid var(--border);
+  width: 28px; height: 28px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 6px; cursor: pointer; margin-left: 2px;
+  color: var(--text2);
+  transition: all 0.15s;
+  font-size: 13px;
+}
+.next-table .icon-btn:hover { background: var(--surface3); color: var(--text); transform: scale(1.08); }
+.next-table .icon-btn.realizar { color: var(--green); border-color: rgba(15,123,63,0.3); }
+.next-table .icon-btn.realizar:hover { background: rgba(15,123,63,0.10); }
+.next-table .icon-btn.danger { color: var(--red); border-color: rgba(194,38,29,0.3); }
+.next-table .icon-btn.danger:hover { background: rgba(194,38,29,0.06); }
+
+/* Section title geral */
 .section-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 800;
   color: var(--text);
   margin-bottom: 14px;
   display: flex; align-items: center; gap: 8px;
 }
-.next-list { max-height: 360px; overflow: auto; }
-.next-row {
-  display: grid;
-  grid-template-columns: 1fr 110px 110px 90px;
-  gap: 10px;
-  padding: 9px 10px;
-  font-size: 13px;
-  border-bottom: 1px solid var(--border);
-  align-items: center;
-}
-.next-row:first-child { background: var(--surface3); font-weight: 700; font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
-.next-row .badge-empresa { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
-.next-row .badge-empresa.MELI { background: #fff8c8; color: #8a6800; }
-.next-row .badge-empresa.GI    { background: #ece1ff; color: #5a39c0; }
-.next-row .badge-empresa.RAND  { background: #d6f1f8; color: #0d7a87; }
-.next-row .badge-empresa.ADEC  { background: #fde0dd; color: #c2261d; }
-.next-row .badge-empresa.PT    { background: #d1f4ee; color: #0d7a6b; }
-.next-row .data-pill { font-family: 'DM Mono', monospace; font-size: 12px; padding: 3px 8px; border-radius: 6px; background: var(--surface2); border: 1px solid var(--border); text-align: center; }
-.next-row .data-pill.atrasado { background: #fde0dd; color: #c2261d; border-color: #f5a5a0; }
-.next-row .data-pill.hoje { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
-.next-row .data-pill.realizado { background: #d6f4e2; color: #166534; border-color: #86efac; }
 
 /* PENDÊNCIAS — duas colunas (MELI / TEMP) */
 .pendencias-grid {
@@ -519,7 +579,6 @@ body {
   </div>
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('dashboard')">📊 Dashboard</button>
-    <button class="tab-btn" onclick="switchTab('agendamentos')">📅 Agendamentos</button>
     <button class="tab-btn" onclick="switchTab('respostas')">📝 Respostas 1:1</button>
   </div>
   <div class="topbar-right">
@@ -559,45 +618,66 @@ body {
       </div>
     </div>
 
-    <!-- KPI principal + ações -->
-    <div class="kpi-grid">
-      <div class="card">
-        <div class="kpi-tree" id="kpi-tree">
-          <div class="col-left">
-            <div class="kpi-cell"><div class="lbl">HC MELI</div><div class="val" id="kpi-meli">—</div></div>
-            <div class="kpi-cell"><div class="lbl">HC TEMP</div><div class="val" id="kpi-temp">—</div></div>
-          </div>
-          <div class="col-mid">
-            <div class="kpi-cell realizado"><div class="lbl">REALIZADO</div><div class="val" id="kpi-meli-real">—</div></div>
-            <div class="kpi-cell agendado"><div class="lbl">AGENDADO</div><div class="val" id="kpi-meli-ag">—</div></div>
-            <div class="kpi-cell realizado"><div class="lbl">REALIZADO</div><div class="val" id="kpi-temp-real">—</div></div>
-            <div class="kpi-cell agendado"><div class="lbl">AGENDADO</div><div class="val" id="kpi-temp-ag">—</div></div>
-          </div>
-          <div class="col-right">
-            <div class="kpi-cell big" style="margin-bottom:10px"><div class="lbl">TOTAL HC</div><div class="val" id="kpi-total">—</div></div>
-            <div class="kpi-cell realizado big"><div class="lbl">REALIZADO</div><div class="val" id="kpi-total-real">—</div></div>
-            <div class="kpi-cell agendado big" style="margin-top:8px"><div class="lbl">AGENDADO</div><div class="val" id="kpi-total-ag">—</div></div>
-          </div>
+    <!-- KPI cards modernos -->
+    <div class="kpi-cards">
+      <div class="kpi-card total">
+        <div class="kpi-icon">👥</div>
+        <div class="kpi-content">
+          <div class="kpi-label">Total HC</div>
+          <div class="kpi-value" id="kpi-total">—</div>
+          <div class="kpi-sub"><span id="kpi-meli">—</span> MELI · <span id="kpi-temp">—</span> Temp</div>
         </div>
       </div>
-
-      <div class="action-cards">
-        <button class="action-card" onclick="switchTab('forms')">
-          <div class="ico">📝</div>
-          <div class="ttl">Acompanhamento<br>1:1 - TL SMG15</div>
-        </button>
-        <button class="action-card" onclick="openAgendarModal()">
-          <div class="ico">📅</div>
-          <div class="ttl">AGENDAR 1:1</div>
-        </button>
-      </div>
-
-      <div class="next-list-wrap">
-        <div class="section-title">📅 Próximos 1:1</div>
-        <div class="next-list" id="next-list">
-          <div class="next-row"><div>Nome</div><div>Empresa</div><div>Líder</div><div>Data</div></div>
+      <div class="kpi-card realizado">
+        <div class="kpi-icon">✅</div>
+        <div class="kpi-content">
+          <div class="kpi-label">1:1 Realizados</div>
+          <div class="kpi-value" id="kpi-total-real">—</div>
+          <div class="kpi-sub" id="kpi-real-sub">— do total no mês</div>
+          <div class="kpi-progress"><div class="kpi-progress-fill" id="kpi-real-bar" style="width:0%"></div></div>
         </div>
       </div>
+      <div class="kpi-card agendado">
+        <div class="kpi-icon">📅</div>
+        <div class="kpi-content">
+          <div class="kpi-label">1:1 Agendados</div>
+          <div class="kpi-value" id="kpi-total-ag">—</div>
+          <div class="kpi-sub" id="kpi-ag-sub">— aguardando</div>
+        </div>
+      </div>
+      <div class="kpi-card pendente">
+        <div class="kpi-icon">⏳</div>
+        <div class="kpi-content">
+          <div class="kpi-label">Pendentes</div>
+          <div class="kpi-value" id="kpi-pendentes">—</div>
+          <div class="kpi-sub">Sem 1:1 no mês</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botão principal: NOVO 1:1 -->
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:18px;flex-wrap:wrap">
+      <button class="btn btn-primary big" onclick="openAgendarModal()">+ Agendar Novo 1:1</button>
+    </div>
+
+    <!-- Tabela de 1:1 (Próximos + Realizados + Cancelados) com filtros -->
+    <div class="card" style="padding:0;overflow:hidden">
+      <div class="card-toolbar">
+        <div class="card-title-block">
+          <span class="section-title-inline">📋 1:1 do período</span>
+          <span class="card-subtitle" id="ag-subtitle">—</span>
+        </div>
+        <div class="card-filters">
+          <select id="ag-filter-status" onchange="refresh1on1Table()" class="filter-input filter-sm">
+            <option value="">Todos status</option>
+            <option value="AGENDADO">Agendado</option>
+            <option value="REALIZADO">Realizado</option>
+            <option value="CANCELADO">Cancelado</option>
+          </select>
+          <input type="text" id="ag-filter-search" placeholder="🔍 Nome..." oninput="refresh1on1Table()" class="filter-input filter-sm" style="min-width:140px">
+        </div>
+      </div>
+      <div id="ag-list-host"></div>
     </div>
 
     <!-- Classificação de desempenho -->
@@ -630,31 +710,6 @@ body {
         <div id="pend-temp-list"></div>
       </div>
     </div>
-  </div>
-
-  <!-- AGENDAMENTOS VIEW -->
-  <div class="view" id="view-agendamentos">
-    <div class="page-title">
-      <div>
-        <h1>📅 Agendamentos 1:1</h1>
-        <div class="sub" id="ag-subtitle">Total: —</div>
-      </div>
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <select id="ag-filter-status" onchange="refreshAgendamentos()" class="filter-input">
-          <option value="">Todos status</option>
-          <option value="AGENDADO">Agendado</option>
-          <option value="REALIZADO">Realizado</option>
-          <option value="CANCELADO">Cancelado</option>
-        </select>
-        <select id="ag-filter-lider" onchange="refreshAgendamentos()" class="filter-input">
-          <option value="">Todos líderes</option>
-        </select>
-        <select id="ag-filter-mes" onchange="refreshAgendamentos()" class="filter-input"></select>
-        <input type="text" id="ag-filter-search" placeholder="🔍 Nome..." oninput="refreshAgendamentos()" class="filter-input" style="min-width:160px">
-        <button class="btn btn-primary" onclick="openAgendarModal()">+ Novo 1:1</button>
-      </div>
-    </div>
-    <div id="ag-list-host"></div>
   </div>
 
   <!-- RESPOSTAS VIEW -->
@@ -841,11 +896,10 @@ function switchTab(name) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('view-' + name).classList.add('active');
-  const idx = ['dashboard','agendamentos','respostas'].indexOf(name);
+  const idx = ['dashboard','respostas'].indexOf(name);
   document.querySelectorAll('.tab-btn')[idx].classList.add('active');
-  if (name === 'dashboard')    refreshDashboard();
-  if (name === 'agendamentos') refreshAgendamentos();
-  if (name === 'respostas')    refreshRespostas();
+  if (name === 'dashboard') refreshDashboard();
+  if (name === 'respostas') refreshRespostas();
 }
 
 // ── Init filters: mês corrente e líderes ──
@@ -874,79 +928,56 @@ function initFilters() {
 
 // ── Dashboard render ──
 function refreshDashboard() {
+  // Garante filtros populados
+  _populateLiderFilter('dash-lider-filter');
   const mes  = document.getElementById('dash-month-filter').value || today().slice(0,7);
   const lider = document.getElementById('dash-lider-filter').value;
   const meses = ['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
   const [yr, mo] = mes.split('-').map(Number);
-  document.getElementById('dash-title').textContent = `PAINEL 1:1 TEAM LEADER — ${meses[mo-1]}`;
+  document.getElementById('dash-title').textContent = `PAINEL 1:1 TEAM LEADER · ${meses[mo-1]}`;
   document.getElementById('dash-subtitle').textContent = `${mes} · ${lider || 'todos os líderes'}`;
 
   // Filtra colabs ATIVOS por líder
   const colabs = allColabs.filter(r => isActive(r) && (!lider || (r['LÍDER']||'').trim() === lider));
-  const meliColabs = colabs.filter(isMeli);
-  const tempColabs = colabs.filter(r => !isMeli(r));   // inclui Part Time + Temp aqui (pode separar se preferir)
+  const meliCt = colabs.filter(isMeli).length;
+  const tempCt = colabs.length - meliCt;
+  const totalHc = colabs.length;
 
-  // Conta agendamentos do mês pra cada colab
+  // Conta 1:1 do mês
   const monthPrefix = mes + '-';
-  function status(idx) {
-    const list = oneOnOnes[idx] || {};
-    let realizado = 0, agendado = 0;
-    Object.values(list).forEach(o => {
+  let realizado = 0, agendado = 0;
+  const colabsComAg = new Set();
+  Object.entries(oneOnOnes).forEach(([idx, items]) => {
+    const colab = allColabs[parseInt(idx)];
+    if (!colab || !isActive(colab)) return;
+    if (lider && (colab['LÍDER']||'').trim() !== lider) return;
+    Object.values(items).forEach(o => {
       if (!o.date || !o.date.startsWith(monthPrefix)) return;
+      if (o.status === 'CANCELADO') return;
+      colabsComAg.add(parseInt(idx));
       if (o.status === 'REALIZADO') realizado++;
       else agendado++;
     });
-    return { realizado, agendado, has: realizado + agendado > 0 };
-  }
-  let meliReal=0, meliAg=0, tempReal=0, tempAg=0;
-  meliColabs.forEach(r => { const s = status(allColabs.indexOf(r)); meliReal += s.realizado; meliAg += s.agendado; });
-  tempColabs.forEach(r => { const s = status(allColabs.indexOf(r)); tempReal += s.realizado; tempAg += s.agendado; });
+  });
+  const pendentes = Math.max(0, totalHc - colabsComAg.size);
+  const totalMes = realizado + agendado;
+  const pctReal = totalHc > 0 ? Math.round(realizado / totalHc * 100) : 0;
 
-  document.getElementById('kpi-meli').textContent = meliColabs.length;
-  document.getElementById('kpi-temp').textContent = tempColabs.length;
-  document.getElementById('kpi-total').textContent = meliColabs.length + tempColabs.length;
-  document.getElementById('kpi-meli-real').textContent = meliReal;
-  document.getElementById('kpi-meli-ag').textContent   = meliAg;
-  document.getElementById('kpi-temp-real').textContent = tempReal;
-  document.getElementById('kpi-temp-ag').textContent   = tempAg;
-  document.getElementById('kpi-total-real').textContent = meliReal + tempReal;
-  document.getElementById('kpi-total-ag').textContent   = meliAg + tempAg;
+  document.getElementById('kpi-total').textContent = totalHc;
+  document.getElementById('kpi-meli').textContent  = meliCt;
+  document.getElementById('kpi-temp').textContent  = tempCt;
+  document.getElementById('kpi-total-real').textContent = realizado;
+  document.getElementById('kpi-total-ag').textContent   = agendado;
+  document.getElementById('kpi-pendentes').textContent  = pendentes;
+  document.getElementById('kpi-real-sub').textContent = `${pctReal}% do total no mês`;
+  document.getElementById('kpi-ag-sub').textContent   = agendado === 0 ? 'aguardando' : (agendado === 1 ? '1 1:1 aguardando' : `${agendado} 1:1 aguardando`);
+  document.getElementById('kpi-real-bar').style.width = pctReal + '%';
 
-  renderNextList();
+  refresh1on1Table();
   renderPendencias();
   renderPerformance();
 }
 
-function renderNextList() {
-  const lider = document.getElementById('dash-lider-filter').value;
-  const mes   = document.getElementById('dash-month-filter').value || today().slice(0,7);
-  const list = [];
-  Object.entries(oneOnOnes).forEach(([idx, items]) => {
-    const colab = allColabs[idx];
-    if (!colab || !isActive(colab)) return;
-    if (lider && (colab['LÍDER']||'').trim() !== lider) return;
-    Object.entries(items).forEach(([id, o]) => {
-      if (!o.date || !o.date.startsWith(mes)) return;
-      list.push({ idx, id, colab, ...o });
-    });
-  });
-  list.sort((a,b) => (a.date || '').localeCompare(b.date || ''));
-  const host = document.getElementById('next-list');
-  const header = '<div class="next-row"><div>Nome</div><div>Empresa</div><div>Líder</div><div>Data</div></div>';
-  if (!list.length) { host.innerHTML = header + '<div style="padding:20px;text-align:center;color:var(--text3)">Sem 1:1 agendados no mês</div>'; return; }
-  const t = today();
-  host.innerHTML = header + list.slice(0, 30).map(it => {
-    const cls = it.status === 'REALIZADO' ? 'realizado' : (it.date < t ? 'atrasado' : it.date === t ? 'hoje' : '');
-    const emp = (it.colab.EMPRESA||'').trim();
-    const empKey = emp === 'MELI' ? 'MELI' : emp === 'PART TIME' ? 'PT' : emp.startsWith('GI') ? 'GI' : emp.startsWith('RAND') ? 'RAND' : emp.startsWith('ADEC') ? 'ADEC' : 'MELI';
-    return `<div class="next-row">
-      <div>${it.colab.COLABORADOR || ''}</div>
-      <div><span class="badge-empresa ${empKey}">${emp}</span></div>
-      <div>${it.colab['LÍDER'] || '—'}</div>
-      <div><span class="data-pill ${cls}">${formatDate(it.date)}</span></div>
-    </div>`;
-  }).join('');
-}
 
 function renderPendencias() {
   const lider = document.getElementById('pend-lider-filter').value || document.getElementById('dash-lider-filter').value;
@@ -1150,15 +1181,29 @@ function _populateLiderFilter(selId) {
   if (cur) sel.value = cur;
 }
 
-// ── Aba AGENDAMENTOS ──
-function refreshAgendamentos() {
-  _populateLiderFilter('ag-filter-lider');
-  _populateMesFilter('ag-filter-mes');
-
+// ── Tabela 1:1 dentro do Dashboard ──
+function _empresaKey(emp) {
+  const e = (emp||'').toUpperCase();
+  if (e === 'MELI') return 'MELI';
+  if (e === 'PART TIME') return 'PT';
+  if (e.startsWith('GI')) return 'GI';
+  if (e.startsWith('RAND')) return 'RAND';
+  if (e.startsWith('ADEC')) return 'ADEC';
+  if (e.startsWith('CARP')) return 'CARP';
+  return 'OTHER';
+}
+function _firstName(nome) {
+  // Mostra "PRIMEIRO ÚLTIMO" (compacto) — primeiro e último nome
+  const parts = (nome || '').trim().split(/\s+/).filter(Boolean);
+  if (parts.length <= 1) return nome || '';
+  return parts[0] + ' ' + parts[parts.length - 1];
+}
+function refresh1on1Table() {
   const status = document.getElementById('ag-filter-status').value;
-  const lider  = document.getElementById('ag-filter-lider').value;
-  const mes    = document.getElementById('ag-filter-mes').value;
   const search = (document.getElementById('ag-filter-search').value || '').trim().toLowerCase();
+  // Pega mês e líder dos filtros do topo do Dashboard
+  const lider = document.getElementById('dash-lider-filter').value;
+  const mes   = document.getElementById('dash-month-filter').value || today().slice(0,7);
 
   let list = flatAgendamentos();
   if (status) list = list.filter(o => (o.status||'AGENDADO') === status);
@@ -1166,57 +1211,66 @@ function refreshAgendamentos() {
   if (mes)    list = list.filter(o => o.date && o.date.startsWith(mes));
   if (search) list = list.filter(o => (o.colab.COLABORADOR||'').toLowerCase().includes(search));
 
-  // Ordena: pendentes/agendados antes, depois realizados, cancelados por último — dentro de cada por data desc
+  // Ordena: agendados primeiro por data asc, depois realizados por data desc, cancelados no fim
   list.sort((a,b) => {
     const ord = { AGENDADO: 0, REALIZADO: 1, CANCELADO: 2 };
     const oa = ord[a.status||'AGENDADO'] ?? 0;
     const ob = ord[b.status||'AGENDADO'] ?? 0;
     if (oa !== ob) return oa - ob;
-    return (b.date||'').localeCompare(a.date||'');
+    return oa === 0 ? (a.date||'').localeCompare(b.date||'') : (b.date||'').localeCompare(a.date||'');
   });
 
-  document.getElementById('ag-subtitle').textContent =
-    `${list.length} agendamento(s)${status ? ' · ' + status : ''}${lider ? ' · ' + lider : ''}`;
+  document.getElementById('ag-subtitle').textContent = `${list.length} registro(s) — ${mes}${lider?' · '+lider:''}`;
 
   const host = document.getElementById('ag-list-host');
   if (!list.length) {
-    host.innerHTML = '<div class="empty-state"><div class="ico">📅</div><div class="ttl">Nenhum agendamento</div><div>Use "+ Novo 1:1" pra agendar.</div></div>';
+    host.innerHTML = '<div class="empty-state" style="margin:20px"><div class="ico">📅</div><div class="ttl">Nenhum 1:1 no período</div><div>Clique em "+ Agendar Novo 1:1" pra começar.</div></div>';
     return;
   }
 
   const t = today();
-  host.innerHTML = `<div class="data-table-wrap"><table class="data-table">
+  host.innerHTML = `<div class="next-table-wrap"><table class="next-table">
     <thead><tr>
-      <th>Colaborador</th>
-      <th>Empresa</th>
-      <th>Líder</th>
-      <th>Data</th>
-      <th>Status</th>
-      <th>Classificação</th>
+      <th style="width:32%">Colaborador</th>
+      <th style="width:90px">Empresa</th>
+      <th style="width:18%">Líder</th>
+      <th style="width:100px">Data</th>
+      <th style="width:100px">Status</th>
+      <th style="width:150px">Classificação</th>
       <th style="text-align:right">Ações</th>
     </tr></thead>
     <tbody>${list.map(o => {
       const st = o.status || 'AGENDADO';
-      let stPill = st;
-      if (st === 'AGENDADO' && o.date && o.date < t) stPill = 'ATRASADO';
-      const stLabel = st === 'AGENDADO' && o.date && o.date < t ? 'Atrasado' : (st.charAt(0) + st.slice(1).toLowerCase());
-      const cls = o.form && o.form.classificacao ? classPillHtml(o.form.classificacao) : '<span style="color:var(--text3);font-size:12px">—</span>';
+      let stPill = st, stLabel = st.charAt(0) + st.slice(1).toLowerCase();
+      let dataCls = '';
+      if (st === 'AGENDADO' && o.date) {
+        if (o.date < t)  { stPill = 'ATRASADO'; stLabel = 'Atrasado'; dataCls = 'atrasado'; }
+        else if (o.date === t) { dataCls = 'hoje'; }
+      } else if (st === 'REALIZADO') {
+        dataCls = 'realizado';
+      }
+      const empName = (o.colab.EMPRESA||'').trim();
+      const empKey = _empresaKey(empName);
+      const empBadge = `<span class="badge-empresa ${empKey}">${empName || '—'}</span>`;
+      const cls = o.form && o.form.classificacao ? classPillHtml(o.form.classificacao) : '<span style="color:var(--text3);font-size:11px">—</span>';
+      const full = o.colab.COLABORADOR || '—';
+      const compact = _firstName(full);
       const actions = st === 'REALIZADO'
-        ? `<button class="action-btn" onclick="openRealizarModal('${o.idx}','${o.id}',true)">👁 Ver</button>`
+        ? `<button class="icon-btn" title="Ver detalhes" onclick="openRealizarModal('${o.idx}','${o.id}',true)">👁</button>`
         : st === 'CANCELADO'
-          ? `<button class="action-btn" onclick="reativarAg('${o.idx}','${o.id}')">↻ Reativar</button>
-             <button class="action-btn danger" onclick="excluirAg('${o.idx}','${o.id}')">🗑</button>`
-          : `<button class="action-btn success" onclick="openRealizarModal('${o.idx}','${o.id}')">✓ Realizar</button>
-             <button class="action-btn" onclick="editarAg('${o.idx}','${o.id}')">✏ Editar</button>
-             <button class="action-btn danger" onclick="cancelarAg('${o.idx}','${o.id}')">✗ Cancelar</button>`;
+          ? `<button class="icon-btn" title="Reativar" onclick="reativarAg('${o.idx}','${o.id}')">↻</button>
+             <button class="icon-btn danger" title="Excluir" onclick="excluirAg('${o.idx}','${o.id}')">🗑</button>`
+          : `<button class="icon-btn realizar" title="Realizar 1:1 (abre formulário)" onclick="openRealizarModal('${o.idx}','${o.id}')">✓</button>
+             <button class="icon-btn" title="Editar agendamento" onclick="editarAg('${o.idx}','${o.id}')">✏</button>
+             <button class="icon-btn danger" title="Cancelar" onclick="cancelarAg('${o.idx}','${o.id}')">✗</button>`;
       return `<tr>
-        <td><strong>${o.colab.COLABORADOR || '—'}</strong></td>
-        <td>${o.colab.EMPRESA || '—'}</td>
+        <td class="col-nome" title="${full}">${compact}<small>${full !== compact ? full : ' '}</small></td>
+        <td>${empBadge}</td>
         <td>${o.colab['LÍDER'] || '—'}</td>
-        <td class="mono">${o.date ? formatDate(o.date) : '—'}${o.time ? ' · ' + o.time : ''}</td>
+        <td><span class="data-cell ${dataCls}">${o.date ? formatDate(o.date) : '—'}</span></td>
         <td><span class="status-pill ${stPill}">${stLabel}</span></td>
         <td>${cls}</td>
-        <td style="text-align:right;white-space:nowrap">${actions}</td>
+        <td class="actions-cell">${actions}</td>
       </tr>`;
     }).join('')}</tbody></table></div>`;
 }
