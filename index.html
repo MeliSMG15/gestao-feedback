@@ -1109,6 +1109,13 @@ function canEdit() {
   if (!currentUser) return false;
   return (currentUser.email||'').toLowerCase().endsWith('@' + ALLOWED_DOMAIN);
 }
+
+// Admin: só esse email pode excluir respostas
+const ADMIN_EMAIL = 'acre.gomes@mercadolivre.com';
+function isAdmin() {
+  if (!currentUser) return false;
+  return (currentUser.email || '').toLowerCase() === ADMIN_EMAIL.toLowerCase();
+}
 function renderAuthUI() {
   const btnIn = document.getElementById('btn-auth-in');
   const box   = document.getElementById('auth-user');
@@ -1697,9 +1704,10 @@ function refreshRespostas() {
           <h4>Pontos orientados pelo líder</h4>
           <p>${(o.form.pontosOrient || '—').replace(/</g,'&lt;')}</p>
         </div>
-        <div style="margin-top:14px;display:flex;gap:8px">
+        <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
           <button class="action-btn primary" onclick="event.stopPropagation();openRealizarModal('${o.idx}','${o.id}',true)">👁 Abrir em modal</button>
           ${canEdit() ? `<button class="action-btn" onclick="event.stopPropagation();reabrirParaEditar('${o.idx}','${o.id}')">✏ Reabrir e editar</button>` : ''}
+          ${isAdmin() ? `<button class="action-btn danger" onclick="event.stopPropagation();excluirResposta('${o.idx}','${o.id}','${(o.colab.COLABORADOR||'').replace(/'/g,'\\\'').replace(/"/g,'&quot;')}')">🗑 Excluir resposta</button>` : ''}
         </div>
       </div>
     </div>
@@ -1873,6 +1881,16 @@ function refreshComparativo() {
 function reabrirParaEditar(idx, id) {
   if (!canEdit()) return notify('Sem permissão', 'error');
   openRealizarModal(idx, id, false);
+}
+
+// Excluir resposta — apenas admin (acre.gomes@mercadolivre.com)
+function excluirResposta(idx, id, nome) {
+  if (!isAdmin()) return notify('Apenas o admin pode excluir respostas', 'error');
+  const label = nome ? ` de ${nome}` : '';
+  if (!confirm(`Excluir definitivamente a resposta${label}?\n\nEssa ação NÃO pode ser desfeita. O agendamento também será removido.`)) return;
+  db.ref(`feedback/oneOnOne/${idx}/${id}`).remove()
+    .then(() => notify('Resposta excluída'))
+    .catch(e => notify('Falha ao excluir: ' + (e.message || e), 'error'));
 }
 
 function exportRespostasCSV() {
