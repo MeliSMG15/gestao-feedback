@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestão de Feedback · MELI SMG15</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%23FFE600'/%3E%3Cpath d='M6 24 Q10 14 15 19 Q19 24 22 20 Q25 16 29 20 Q34 24 38 16' stroke='%232D3277' stroke-width='3.5' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Topbar escura ML */
+  --topbar-bg: #131b33;
+  --topbar-text: #ffffff;
+  --topbar-border: #2c3a60;
+  --meli-yellow: #FFE600;
+  --meli-dark: #2D3277;
+
+  /* Conteúdo claro */
+  --bg: #f1f5fb;
+  --surface: #ffffff;
+  --surface2: #f7fafd;
+  --surface3: #e8eef7;
+  --border: #d3dde9;
+  --border2: #b8c6d7;
+  --text: #1a2d4f;
+  --text2: #45597a;
+  --text3: #768aa8;
+  --accent: #1e6ae0;
+  --accent2: #3483FA;
+  --green: #0f7b3f;
+  --green2: #16a34a;
+  --red: #c2261d;
+  --yellow: #b97e09;
+  --purple: #5a39c0;
+  --cyan: #0d7a87;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+.mono { font-family: 'DM Mono', monospace; font-variant-numeric: tabular-nums; }
+
+/* ── TOPBAR ── */
+.topbar {
+  background: var(--topbar-bg);
+  border-top: 3px solid var(--meli-yellow);
+  color: var(--topbar-text);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.brand { display: flex; align-items: center; gap: 14px; }
+.brand-icon {
+  width: 44px; height: 32px;
+  background: var(--meli-yellow);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 6px rgba(255,230,0,0.25);
+}
+.brand-name { font-weight: 800; font-size: 16px; letter-spacing: -0.3px; }
+.brand-sub { font-size: 11px; color: rgba(255,255,255,0.6); font-family: 'DM Mono', monospace; letter-spacing: 0.4px; }
+.tabs { display: flex; gap: 4px; }
+.tab-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: rgba(255,255,255,0.72);
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.15s;
+  position: relative;
+}
+.tab-btn:hover:not(.active) { color: #fff; background: rgba(255,255,255,0.06); }
+.tab-btn.active { color: #fff; background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.14); }
+.tab-btn.active::after {
+  content: '';
+  position: absolute; left: 14px; right: 14px; bottom: -1px;
+  height: 2px; background: var(--meli-yellow); border-radius: 2px;
+}
+.topbar-right { display: flex; align-items: center; gap: 12px; }
+.online-pill {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 11px; font-family: 'DM Mono', monospace; color: rgba(255,255,255,0.72);
+  padding: 6px 12px; border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04);
+}
+.online-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #6b7d99; transition: background 0.3s;
+}
+.topbar-btn {
+  font-size: 11px; font-family: 'DM Mono', monospace;
+  padding: 7px 14px; border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.06); color: #fff;
+  cursor: pointer; transition: all 0.15s;
+}
+.topbar-btn:hover { background: rgba(255,255,255,0.12); }
+.auth-user { display: none; align-items: center; gap: 10px; padding: 4px 10px 4px 4px; border-radius: 22px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); }
+.auth-user img { width: 26px; height: 26px; border-radius: 50%; }
+.auth-user .nm { font-size: 12px; font-family: 'DM Mono', monospace; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── CONTAINER ── */
+.main { padding: 24px; max-width: 1500px; margin: 0 auto; }
+.view { display: none; }
+.view.active { display: block; }
+
+/* ── PAGE TITLE ── */
+.page-title {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-top: 4px solid var(--meli-yellow);
+  border-radius: 12px;
+  padding: 18px 24px;
+  margin-bottom: 20px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.page-title h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.4px; color: var(--text); }
+.page-title .sub { font-size: 12px; color: var(--text2); margin-top: 2px; font-family: 'DM Mono', monospace; }
+
+/* ── PANELS / CARDS ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  box-shadow: 0 1px 3px rgba(30, 60, 110, 0.04);
+}
+
+/* KPI PANEL — caixas tipo "TOTAL HC / HC MELI / HC TEMP" */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.1fr) minmax(220px, 0.9fr) minmax(280px, 1.1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+@media (max-width: 1000px) { .kpi-grid { grid-template-columns: 1fr; } }
+
+.kpi-tree { display: flex; align-items: stretch; gap: 14px; }
+.kpi-tree .col-left { display: flex; flex-direction: column; justify-content: space-evenly; gap: 12px; flex: 0 0 140px; }
+.kpi-tree .col-mid { display: flex; flex-direction: column; justify-content: space-evenly; gap: 12px; flex: 1; }
+.kpi-tree .col-right { display: flex; flex-direction: column; justify-content: center; flex: 0 0 130px; }
+.kpi-cell {
+  border: 2px solid #1a1a1a;
+  background: #fff;
+  padding: 10px 14px;
+  text-align: center;
+}
+.kpi-cell .lbl { font-size: 11px; color: #222; font-weight: 700; letter-spacing: 0.4px; }
+.kpi-cell .val { font-size: 26px; font-weight: 900; color: #111; line-height: 1.2; }
+.kpi-cell.realizado { background: #d6f4e2; border-color: #15803d; }
+.kpi-cell.agendado  { background: #e5e7eb; border-color: #6b7280; }
+.kpi-cell.big .val { font-size: 36px; }
+
+.action-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.action-card {
+  background: var(--meli-yellow);
+  border-radius: 12px;
+  padding: 22px 18px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  border: none;
+  font-family: inherit;
+  color: var(--meli-dark);
+  text-decoration: none;
+}
+.action-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(255, 230, 0, 0.35); }
+.action-card .ico { font-size: 36px; }
+.action-card .ttl { font-size: 14px; font-weight: 800; line-height: 1.25; }
+
+.next-list-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 20px;
+}
+.section-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.next-list { max-height: 360px; overflow: auto; }
+.next-row {
+  display: grid;
+  grid-template-columns: 1fr 110px 110px 90px;
+  gap: 10px;
+  padding: 9px 10px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+}
+.next-row:first-child { background: var(--surface3); font-weight: 700; font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
+.next-row .badge-empresa { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+.next-row .badge-empresa.MELI { background: #fff8c8; color: #8a6800; }
+.next-row .badge-empresa.GI    { background: #ece1ff; color: #5a39c0; }
+.next-row .badge-empresa.RAND  { background: #d6f1f8; color: #0d7a87; }
+.next-row .badge-empresa.ADEC  { background: #fde0dd; color: #c2261d; }
+.next-row .badge-empresa.PT    { background: #d1f4ee; color: #0d7a6b; }
+.next-row .data-pill { font-family: 'DM Mono', monospace; font-size: 12px; padding: 3px 8px; border-radius: 6px; background: var(--surface2); border: 1px solid var(--border); text-align: center; }
+.next-row .data-pill.atrasado { background: #fde0dd; color: #c2261d; border-color: #f5a5a0; }
+.next-row .data-pill.hoje { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+.next-row .data-pill.realizado { background: #d6f4e2; color: #166534; border-color: #86efac; }
+
+/* PENDÊNCIAS — duas colunas (MELI / TEMP) */
+.pendencias-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+@media (max-width: 900px) { .pendencias-grid { grid-template-columns: 1fr; } }
+.pend-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.pend-card-header {
+  background: #1a1a1a;
+  color: #fff;
+  padding: 14px 18px;
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: 1px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.pend-card-header .count { background: rgba(255,255,255,0.15); padding: 3px 10px; border-radius: 12px; font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 700; }
+.pend-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.pend-table th { background: var(--surface3); color: var(--text2); font-weight: 700; padding: 8px 12px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+.pend-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+.pend-table tr:hover td { background: var(--surface2); }
+.pend-empty { padding: 40px 20px; text-align: center; color: var(--text3); }
+
+/* CLASSIFICAÇÃO DE DESEMPENHO */
+.perf-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 20px;
+}
+.perf-header { text-align: center; margin-bottom: 14px; }
+.perf-header h2 { display: inline-block; font-size: 16px; font-weight: 800; padding: 8px 24px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; }
+.perf-body { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; align-items: center; background: var(--surface3); padding: 20px; border-radius: 10px; }
+@media (max-width: 800px) { .perf-body { grid-template-columns: 1fr; } }
+.perf-bars { display: flex; flex-direction: column; gap: 14px; }
+.perf-bar-row { display: grid; grid-template-columns: 180px 1fr; gap: 12px; align-items: center; }
+.perf-bar-label { font-size: 13px; color: var(--text); text-align: right; }
+.perf-bar { position: relative; height: 30px; background: rgba(255,230,0,0.4); border: 1px solid #c2a800; border-radius: 3px; }
+.perf-bar .fill { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); font-weight: 800; font-size: 14px; color: var(--text); }
+.perf-pie { display: flex; align-items: center; justify-content: center; }
+.perf-pie canvas { max-width: 220px; }
+
+/* ── FORM (modais e inputs gerais) ── */
+.btn {
+  padding: 10px 18px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--surface2);
+  color: var(--text);
+  transition: all 0.15s;
+}
+.btn:hover:not(:disabled) { background: var(--surface3); border-color: var(--border2); }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: var(--accent2); border-color: var(--accent2); }
+.btn-ghost { background: transparent; }
+.btn-danger { background: var(--red); color: #fff; border-color: var(--red); }
+
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(20, 35, 65, 0.55);
+  display: none; align-items: center; justify-content: center; z-index: 1000;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 24px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.modal-title { font-size: 18px; font-weight: 800; margin-bottom: 16px; color: var(--text); }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group.full { grid-column: 1/-1; }
+.form-group label { font-size: 12px; font-weight: 600; color: var(--text2); }
+.form-group input, .form-group select, .form-group textarea {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--text);
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(30, 106, 224, 0.12);
+}
+.modal-actions { display: flex; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+
+/* Loading */
+.loading-overlay { position: fixed; inset: 0; background: rgba(241, 245, 251, 0.85); display: none; align-items: center; justify-content: center; z-index: 999; }
+.loading-overlay.show { display: flex; }
+.spinner { width: 44px; height: 44px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Notification */
+.notification {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--surface); color: var(--text);
+  padding: 14px 20px; border-radius: 10px;
+  border-left: 4px solid var(--accent);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  z-index: 2000;
+  transform: translateX(420px); transition: transform 0.3s;
+  font-size: 13px; font-weight: 500;
+}
+.notification.show { transform: translateX(0); }
+.notification.error { border-left-color: var(--red); }
+.notification.success { border-left-color: var(--green); }
+
+/* Banner */
+#readonly-banner {
+  display: none;
+  background: rgba(255, 230, 0, 0.15);
+  border-bottom: 1px solid rgba(255, 230, 0, 0.4);
+  color: #5a4a00; font-size: 12px;
+  font-family: 'DM Mono', monospace; font-weight: 500;
+  padding: 8px 24px; text-align: center;
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-icon" title="Mercado Livre">
+      <svg viewBox="0 0 40 28" width="34" height="22" xmlns="http://www.w3.org/2000/svg" aria-label="ML">
+        <path d="M4 18 Q8 8 13 13 Q17 18 20 14 Q23 10 27 14 Q32 18 36 10" stroke="#2D3277" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <circle cx="10" cy="12" r="1.6" fill="#2D3277"/>
+        <circle cx="30" cy="12" r="1.6" fill="#2D3277"/>
+      </svg>
+    </div>
+    <div>
+      <div class="brand-name">Gestão de Feedback</div>
+      <div class="brand-sub">SMG15 · 1:1 Team Leader</div>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('dashboard')">📊 Dashboard</button>
+    <button class="tab-btn" onclick="switchTab('agendar')">📅 Agendar 1:1</button>
+    <button class="tab-btn" onclick="switchTab('forms')">📝 Formulário 1:1</button>
+  </div>
+  <div class="topbar-right">
+    <div class="online-pill">
+      <div class="online-dot" id="online-dot"></div>
+      <span id="online-text">Conectando...</span>
+    </div>
+    <div id="auth-box">
+      <button id="btn-auth-in" class="topbar-btn" onclick="signInEmailLink()">📧 Entrar</button>
+      <div id="auth-user" class="auth-user">
+        <img id="auth-avatar" src="" alt="">
+        <span id="auth-name" class="nm"></span>
+        <button class="topbar-btn" onclick="signOutUser()" style="padding:4px 10px;font-size:11px">Sair</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="readonly-banner">👁 Modo somente-leitura — faça login com email @mercadolivre.com pra agendar 1:1</div>
+
+<div class="main">
+
+  <!-- DASHBOARD VIEW -->
+  <div class="view active" id="view-dashboard">
+    <div class="page-title">
+      <div>
+        <h1 id="dash-title">PAINEL 1:1 TEAM LEADER</h1>
+        <div class="sub" id="dash-subtitle">Carregando…</div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <select id="dash-month-filter" onchange="refreshDashboard()" style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);font-family:inherit;font-size:13px;background:#fff;color:var(--text)">
+          <option value="">Mês atual</option>
+        </select>
+        <select id="dash-lider-filter" onchange="refreshDashboard()" style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);font-family:inherit;font-size:13px;background:#fff;color:var(--text)">
+          <option value="">Todos líderes</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- KPI principal + ações -->
+    <div class="kpi-grid">
+      <div class="card">
+        <div class="kpi-tree" id="kpi-tree">
+          <div class="col-left">
+            <div class="kpi-cell"><div class="lbl">HC MELI</div><div class="val" id="kpi-meli">—</div></div>
+            <div class="kpi-cell"><div class="lbl">HC TEMP</div><div class="val" id="kpi-temp">—</div></div>
+          </div>
+          <div class="col-mid">
+            <div class="kpi-cell realizado"><div class="lbl">REALIZADO</div><div class="val" id="kpi-meli-real">—</div></div>
+            <div class="kpi-cell agendado"><div class="lbl">AGENDADO</div><div class="val" id="kpi-meli-ag">—</div></div>
+            <div class="kpi-cell realizado"><div class="lbl">REALIZADO</div><div class="val" id="kpi-temp-real">—</div></div>
+            <div class="kpi-cell agendado"><div class="lbl">AGENDADO</div><div class="val" id="kpi-temp-ag">—</div></div>
+          </div>
+          <div class="col-right">
+            <div class="kpi-cell big" style="margin-bottom:10px"><div class="lbl">TOTAL HC</div><div class="val" id="kpi-total">—</div></div>
+            <div class="kpi-cell realizado big"><div class="lbl">REALIZADO</div><div class="val" id="kpi-total-real">—</div></div>
+            <div class="kpi-cell agendado big" style="margin-top:8px"><div class="lbl">AGENDADO</div><div class="val" id="kpi-total-ag">—</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-cards">
+        <button class="action-card" onclick="switchTab('forms')">
+          <div class="ico">📝</div>
+          <div class="ttl">Acompanhamento<br>1:1 - TL SMG15</div>
+        </button>
+        <button class="action-card" onclick="openAgendarModal()">
+          <div class="ico">📅</div>
+          <div class="ttl">AGENDAR 1:1</div>
+        </button>
+      </div>
+
+      <div class="next-list-wrap">
+        <div class="section-title">📅 Próximos 1:1</div>
+        <div class="next-list" id="next-list">
+          <div class="next-row"><div>Nome</div><div>Empresa</div><div>Líder</div><div>Data</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Classificação de desempenho -->
+    <div class="perf-wrap">
+      <div class="perf-header"><h2>CLASSIFICAÇÃO DE DESEMPENHO</h2></div>
+      <div class="perf-body">
+        <div class="perf-bars" id="perf-bars">
+          <div class="perf-bar-row"><div class="perf-bar-label">Alinhado</div><div class="perf-bar"><div class="fill" id="perf-alin">0</div></div></div>
+          <div class="perf-bar-row"><div class="perf-bar-label">Necessita alinhamento</div><div class="perf-bar"><div class="fill" id="perf-nec">0</div></div></div>
+          <div class="perf-bar-row"><div class="perf-bar-label">Potencial para promoção</div><div class="perf-bar"><div class="fill" id="perf-pot">0</div></div></div>
+        </div>
+        <div class="perf-pie"><canvas id="perf-pie-canvas" width="220" height="220"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Pendências de agendamento -->
+    <div class="page-title" style="margin-bottom:14px">
+      <h1 style="font-size:18px">📋 PENDÊNCIAS DE AGENDAMENTO</h1>
+      <select id="pend-lider-filter" onchange="renderPendencias()" style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);font-family:inherit;font-size:13px;background:#fff;color:var(--text)">
+        <option value="">Todos os líderes</option>
+      </select>
+    </div>
+    <div class="pendencias-grid">
+      <div class="pend-card">
+        <div class="pend-card-header">MELI <span class="count" id="pend-meli-count">0</span></div>
+        <div id="pend-meli-list"></div>
+      </div>
+      <div class="pend-card">
+        <div class="pend-card-header">TEMPORÁRIO <span class="count" id="pend-temp-count">0</span></div>
+        <div id="pend-temp-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AGENDAR VIEW -->
+  <div class="view" id="view-agendar">
+    <div class="page-title">
+      <div>
+        <h1>📅 Agendamentos 1:1</h1>
+        <div class="sub">Visualização e gerenciamento dos 1:1 marcados</div>
+      </div>
+      <button class="btn btn-primary" onclick="openAgendarModal()">+ Novo 1:1</button>
+    </div>
+    <div class="card">
+      <div id="agendar-list">Em construção…</div>
+    </div>
+  </div>
+
+  <!-- FORMS VIEW -->
+  <div class="view" id="view-forms">
+    <div class="page-title">
+      <div>
+        <h1>📝 Formulário de Acompanhamento 1:1</h1>
+        <div class="sub">As perguntas vão aqui — me manda a estrutura do forms</div>
+      </div>
+    </div>
+    <div class="card">
+      <div style="text-align:center;padding:40px;color:var(--text2)">
+        ⏳ Aguardando você enviar as perguntas do forms pra eu montar
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL: Agendar 1:1 -->
+<div class="modal-overlay" id="modal-agendar">
+  <div class="modal" style="width:560px">
+    <div class="modal-title">📅 Agendar 1:1</div>
+    <div class="form-grid">
+      <div class="form-group full">
+        <label>Colaborador *</label>
+        <input type="text" id="ag-colab" list="ag-colab-list" placeholder="Comece a digitar..." autocomplete="off" oninput="onAgColabChange()">
+        <datalist id="ag-colab-list"></datalist>
+        <div id="ag-colab-hint" style="font-size:11px;color:var(--text3);margin-top:4px"></div>
+      </div>
+      <div class="form-group"><label>Empresa</label><input type="text" id="ag-empresa" readonly></div>
+      <div class="form-group"><label>Líder</label><input type="text" id="ag-lider" readonly></div>
+      <div class="form-group"><label>Data *</label><input type="date" id="ag-date"></div>
+      <div class="form-group"><label>Hora</label><input type="time" id="ag-time"></div>
+      <div class="form-group full"><label>Observações</label><textarea id="ag-obs" rows="3" placeholder="Anotações iniciais..."></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost" onclick="closeAgendarModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveAgendamento()">💾 Salvar agendamento</button>
+    </div>
+  </div>
+</div>
+
+<div class="notification" id="notification"></div>
+<div class="loading-overlay show" id="loading-overlay"><div class="spinner"></div></div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// FIREBASE — mesmo banco do controle-presenca (registrosmg15)
+// ════════════════════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyCR-O8PWfKdTANDPnu59DeACPmAN-TrJsI",
+  authDomain: "registrosmg15.firebaseapp.com",
+  databaseURL: "https://registrosmg15-default-rtdb.firebaseio.com",
+  projectId: "registrosmg15",
+  storageBucket: "registrosmg15.firebasestorage.app",
+  messagingSenderId: "353674201769",
+  appId: "1:353674201769:web:14f0e14647e85875b4b7b8"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const ALLOWED_DOMAIN = 'mercadolivre.com';
+
+// ── Estado ──
+let allColabs = [];        // lê de presenca/data
+let oneOnOnes = {};        // lê de feedback/oneOnOne
+let currentUser = null;
+
+// ── Helpers ──
+function notify(msg, type='success') {
+  const el = document.getElementById('notification');
+  el.textContent = (type === 'success' ? '✓ ' : '✗ ') + msg;
+  el.className = `notification ${type} show`;
+  setTimeout(() => el.classList.remove('show'), 3500);
+}
+function today() { return new Date().toISOString().slice(0,10); }
+function formatDate(d) {
+  if (!d) return '';
+  const p = d.split('T')[0].split('-');
+  return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : d;
+}
+function isActive(r)   { return (r.STATUS||'').trim().toUpperCase() === 'ATIVO'; }
+function isMeli(r)     { return (r.EMPRESA||'').trim().toUpperCase() === 'MELI'; }
+function isPartTime(r) { return (r.EMPRESA||'').trim().toUpperCase() === 'PART TIME'; }
+function isTemp(r)     { return !isMeli(r) && !isPartTime(r); }
+
+// ── Auth ──
+function signInEmailLink() {
+  const email = (prompt(`Digite seu email @${ALLOWED_DOMAIN}:`) || '').trim().toLowerCase();
+  if (!email) return;
+  if (!email.endsWith('@' + ALLOWED_DOMAIN)) {
+    if (!confirm(`O email ${email} não é @${ALLOWED_DOMAIN}. Vai entrar em modo somente-leitura. Continuar?`)) return;
+  }
+  const actionCodeSettings = { url: window.location.origin + window.location.pathname, handleCodeInApp: true };
+  firebase.auth().sendSignInLinkToEmail(email, actionCodeSettings)
+    .then(() => { localStorage.setItem('emailForSignIn_feedback', email); notify('Link de login enviado pra ' + email); })
+    .catch(err => notify('Falha no envio: ' + (err.message || err), 'error'));
+}
+function completeEmailLinkSignIn() {
+  if (!firebase.auth().isSignInWithEmailLink(window.location.href)) return;
+  let email = localStorage.getItem('emailForSignIn_feedback');
+  if (!email) email = prompt('Confirme seu email pra completar o login:');
+  if (!email) return;
+  firebase.auth().signInWithEmailLink(email, window.location.href)
+    .then(() => { localStorage.removeItem('emailForSignIn_feedback'); history.replaceState(null, '', window.location.pathname); notify('Login concluído ✓'); })
+    .catch(err => notify('Falha ao completar login: ' + (err.message || err), 'error'));
+}
+function signOutUser() { firebase.auth().signOut().then(() => notify('Sessão encerrada')); }
+function canEdit() {
+  if (!currentUser) return false;
+  return (currentUser.email||'').toLowerCase().endsWith('@' + ALLOWED_DOMAIN);
+}
+function renderAuthUI() {
+  const btnIn = document.getElementById('btn-auth-in');
+  const box   = document.getElementById('auth-user');
+  if (currentUser) {
+    btnIn.style.display = 'none';
+    box.style.display = 'flex';
+    document.getElementById('auth-avatar').src = currentUser.photoURL || '';
+    document.getElementById('auth-avatar').style.display = currentUser.photoURL ? 'block' : 'none';
+    document.getElementById('auth-name').textContent = currentUser.displayName || currentUser.email;
+  } else {
+    btnIn.style.display = 'inline-block';
+    box.style.display = 'none';
+  }
+  document.getElementById('readonly-banner').style.display = canEdit() ? 'none' : 'flex';
+}
+
+// ── Tab switching ──
+function switchTab(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  const idx = ['dashboard','agendar','forms'].indexOf(name);
+  document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+  if (name === 'dashboard') refreshDashboard();
+}
+
+// ── Init filters: mês corrente e líderes ──
+function initFilters() {
+  // Meses (atual, anterior, próximo)
+  const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const now = new Date();
+  const sel = document.getElementById('dash-month-filter');
+  sel.innerHTML = '';
+  for (let i = -2; i <= 1; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    const v = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const lbl = `${meses[d.getMonth()]} ${d.getFullYear()}`;
+    const opt = document.createElement('option');
+    opt.value = v; opt.textContent = lbl;
+    if (i === 0) opt.selected = true;
+    sel.appendChild(opt);
+  }
+  // Líderes únicos
+  const lideres = [...new Set(allColabs.map(r => (r['LÍDER']||'').trim()).filter(v => v))].sort();
+  ['dash-lider-filter','pend-lider-filter'].forEach(id => {
+    const s = document.getElementById(id);
+    s.innerHTML = '<option value="">Todos os líderes</option>' + lideres.map(l => `<option>${l}</option>`).join('');
+  });
+}
+
+// ── Dashboard render ──
+function refreshDashboard() {
+  const mes  = document.getElementById('dash-month-filter').value || today().slice(0,7);
+  const lider = document.getElementById('dash-lider-filter').value;
+  const meses = ['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
+  const [yr, mo] = mes.split('-').map(Number);
+  document.getElementById('dash-title').textContent = `PAINEL 1:1 TEAM LEADER — ${meses[mo-1]}`;
+  document.getElementById('dash-subtitle').textContent = `${mes} · ${lider || 'todos os líderes'}`;
+
+  // Filtra colabs ATIVOS por líder
+  const colabs = allColabs.filter(r => isActive(r) && (!lider || (r['LÍDER']||'').trim() === lider));
+  const meliColabs = colabs.filter(isMeli);
+  const tempColabs = colabs.filter(r => !isMeli(r));   // inclui Part Time + Temp aqui (pode separar se preferir)
+
+  // Conta agendamentos do mês pra cada colab
+  const monthPrefix = mes + '-';
+  function status(idx) {
+    const list = oneOnOnes[idx] || {};
+    let realizado = 0, agendado = 0;
+    Object.values(list).forEach(o => {
+      if (!o.date || !o.date.startsWith(monthPrefix)) return;
+      if (o.status === 'REALIZADO') realizado++;
+      else agendado++;
+    });
+    return { realizado, agendado, has: realizado + agendado > 0 };
+  }
+  let meliReal=0, meliAg=0, tempReal=0, tempAg=0;
+  meliColabs.forEach(r => { const s = status(allColabs.indexOf(r)); meliReal += s.realizado; meliAg += s.agendado; });
+  tempColabs.forEach(r => { const s = status(allColabs.indexOf(r)); tempReal += s.realizado; tempAg += s.agendado; });
+
+  document.getElementById('kpi-meli').textContent = meliColabs.length;
+  document.getElementById('kpi-temp').textContent = tempColabs.length;
+  document.getElementById('kpi-total').textContent = meliColabs.length + tempColabs.length;
+  document.getElementById('kpi-meli-real').textContent = meliReal;
+  document.getElementById('kpi-meli-ag').textContent   = meliAg;
+  document.getElementById('kpi-temp-real').textContent = tempReal;
+  document.getElementById('kpi-temp-ag').textContent   = tempAg;
+  document.getElementById('kpi-total-real').textContent = meliReal + tempReal;
+  document.getElementById('kpi-total-ag').textContent   = meliAg + tempAg;
+
+  renderNextList();
+  renderPendencias();
+  renderPerformance();
+}
+
+function renderNextList() {
+  const lider = document.getElementById('dash-lider-filter').value;
+  const mes   = document.getElementById('dash-month-filter').value || today().slice(0,7);
+  const list = [];
+  Object.entries(oneOnOnes).forEach(([idx, items]) => {
+    const colab = allColabs[idx];
+    if (!colab || !isActive(colab)) return;
+    if (lider && (colab['LÍDER']||'').trim() !== lider) return;
+    Object.values(items).forEach(o => {
+      if (!o.date || !o.date.startsWith(mes)) return;
+      list.push({ colab, ...o });
+    });
+  });
+  list.sort((a,b) => (a.date || '').localeCompare(b.date || ''));
+  const host = document.getElementById('next-list');
+  const header = '<div class="next-row"><div>Nome</div><div>Empresa</div><div>Líder</div><div>Data</div></div>';
+  if (!list.length) { host.innerHTML = header + '<div style="padding:20px;text-align:center;color:var(--text3)">Sem 1:1 agendados no mês</div>'; return; }
+  const t = today();
+  host.innerHTML = header + list.slice(0, 30).map(it => {
+    const cls = it.status === 'REALIZADO' ? 'realizado' : (it.date < t ? 'atrasado' : it.date === t ? 'hoje' : '');
+    const emp = (it.colab.EMPRESA||'').trim();
+    const empKey = emp === 'MELI' ? 'MELI' : emp === 'PART TIME' ? 'PT' : emp.startsWith('GI') ? 'GI' : emp.startsWith('RAND') ? 'RAND' : emp.startsWith('ADEC') ? 'ADEC' : 'MELI';
+    return `<div class="next-row">
+      <div>${it.colab.COLABORADOR || ''}</div>
+      <div><span class="badge-empresa ${empKey}">${emp}</span></div>
+      <div>${it.colab['LÍDER'] || '—'}</div>
+      <div><span class="data-pill ${cls}">${formatDate(it.date)}</span></div>
+    </div>`;
+  }).join('');
+}
+
+function renderPendencias() {
+  const lider = document.getElementById('pend-lider-filter').value || document.getElementById('dash-lider-filter').value;
+  const mes = document.getElementById('dash-month-filter').value || today().slice(0,7);
+
+  function hasAg(idx) {
+    const items = oneOnOnes[idx] || {};
+    return Object.values(items).some(o => o.date && o.date.startsWith(mes));
+  }
+
+  const meli = [], temp = [];
+  allColabs.forEach((r, idx) => {
+    if (!isActive(r)) return;
+    if (lider && (r['LÍDER']||'').trim() !== lider) return;
+    if (hasAg(idx)) return;
+    (isMeli(r) ? meli : temp).push(r);
+  });
+  meli.sort((a,b) => (a.COLABORADOR||'').localeCompare(b.COLABORADOR||''));
+  temp.sort((a,b) => (a.COLABORADOR||'').localeCompare(b.COLABORADOR||''));
+
+  function render(elId, arr) {
+    document.getElementById(elId+'-count').textContent = arr.length;
+    const host = document.getElementById(elId+'-list');
+    if (!arr.length) { host.innerHTML = '<div class="pend-empty">✓ Todos com 1:1 agendado neste mês</div>'; return; }
+    host.innerHTML = `<table class="pend-table"><thead><tr><th>Nome</th><th>Empresa</th><th>Líder</th></tr></thead><tbody>${
+      arr.map(r => `<tr><td>${r.COLABORADOR||''}</td><td>${r.EMPRESA||''}</td><td>${r['LÍDER']||'—'}</td></tr>`).join('')
+    }</tbody></table>`;
+  }
+  render('pend-meli', meli);
+  render('pend-temp', temp);
+}
+
+function renderPerformance() {
+  const mes = document.getElementById('dash-month-filter').value || today().slice(0,7);
+  const lider = document.getElementById('dash-lider-filter').value;
+  let alin=0, nec=0, pot=0;
+  Object.entries(oneOnOnes).forEach(([idx, items]) => {
+    const colab = allColabs[idx];
+    if (!colab || !isActive(colab)) return;
+    if (lider && (colab['LÍDER']||'').trim() !== lider) return;
+    Object.values(items).forEach(o => {
+      if (!o.date || !o.date.startsWith(mes)) return;
+      if (o.status !== 'REALIZADO') return;
+      const c = (o.classificacao||'').toLowerCase();
+      if (c === 'alinhado') alin++;
+      else if (c === 'necessita alinhamento' || c === 'necessita') nec++;
+      else if (c === 'potencial para promocao' || c === 'potencial para promoção' || c === 'potencial') pot++;
+    });
+  });
+  const total = Math.max(1, alin + nec + pot);
+  const max = Math.max(alin, nec, pot, 1);
+  const setBar = (id, val) => {
+    const el = document.getElementById(id);
+    el.textContent = val;
+    const fill = (val / max) * 100;
+    const bar = el.parentElement;
+    bar.style.background = `linear-gradient(to right, rgba(255,230,0,0.55) ${fill}%, transparent ${fill}%)`;
+  };
+  setBar('perf-alin', alin);
+  setBar('perf-nec',  nec);
+  setBar('perf-pot',  pot);
+  // Pie
+  drawPie([{label:'Alinhado',value:alin,color:'#FFE600'},{label:'Necessita',value:nec,color:'#fde68a'},{label:'Potencial',value:pot,color:'#fbbf24'}]);
+}
+
+function drawPie(slices) {
+  const c = document.getElementById('perf-pie-canvas');
+  const ctx = c.getContext('2d');
+  ctx.clearRect(0,0,c.width,c.height);
+  const total = slices.reduce((s,x)=>s+x.value,0);
+  if (total === 0) {
+    ctx.fillStyle = '#e5e7eb';
+    ctx.beginPath(); ctx.arc(110, 110, 90, 0, 2*Math.PI); ctx.fill();
+    ctx.fillStyle = '#888'; ctx.font = '14px Inter, sans-serif';
+    ctx.textAlign = 'center'; ctx.fillText('Sem dados', 110, 115);
+    return;
+  }
+  let start = -Math.PI/2;
+  slices.forEach(s => {
+    const angle = (s.value/total) * 2 * Math.PI;
+    ctx.fillStyle = s.color;
+    ctx.beginPath();
+    ctx.moveTo(110,110);
+    ctx.arc(110,110,90,start,start+angle);
+    ctx.closePath(); ctx.fill();
+    if (s.value > 0) {
+      const mid = start + angle/2;
+      const tx = 110 + Math.cos(mid)*50;
+      const ty = 110 + Math.sin(mid)*50;
+      ctx.fillStyle = '#2D3277'; ctx.font = 'bold 12px Inter, sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(Math.round(s.value/total*100) + '%', tx, ty);
+    }
+    start += angle;
+  });
+}
+
+// ── Modal Agendar ──
+function openAgendarModal() {
+  if (!canEdit()) { notify('Faça login com email @' + ALLOWED_DOMAIN + ' pra agendar', 'error'); return; }
+  document.getElementById('modal-agendar').classList.add('open');
+  const dl = document.getElementById('ag-colab-list');
+  dl.innerHTML = allColabs.filter(isActive).map(r => `<option value="${(r.COLABORADOR||'').replace(/"/g,'&quot;')}">`).join('');
+  ['ag-colab','ag-empresa','ag-lider','ag-obs'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('ag-date').value = today();
+  document.getElementById('ag-time').value = '';
+  document.getElementById('ag-colab-hint').textContent = '';
+  setTimeout(() => document.getElementById('ag-colab').focus(), 50);
+}
+function closeAgendarModal() { document.getElementById('modal-agendar').classList.remove('open'); }
+function findColabByName(nome) {
+  const n = (nome||'').trim().toUpperCase();
+  if (!n) return -1;
+  return allColabs.findIndex(r => (r.COLABORADOR||'').trim().toUpperCase() === n);
+}
+function onAgColabChange() {
+  const nome = document.getElementById('ag-colab').value;
+  const hint = document.getElementById('ag-colab-hint');
+  const idx = findColabByName(nome);
+  if (idx === -1) {
+    document.getElementById('ag-empresa').value = '';
+    document.getElementById('ag-lider').value = '';
+    if (nome.trim()) { hint.textContent = 'Colaborador não encontrado'; hint.style.color = '#c2261d'; }
+    else { hint.textContent = ''; }
+    return;
+  }
+  const r = allColabs[idx];
+  document.getElementById('ag-empresa').value = r.EMPRESA || '';
+  document.getElementById('ag-lider').value = r['LÍDER'] || '';
+  hint.textContent = '✓ Encontrado';
+  hint.style.color = '#0f7b3f';
+}
+function saveAgendamento() {
+  if (!canEdit()) { notify('Sem permissão', 'error'); return; }
+  const nome = document.getElementById('ag-colab').value.trim();
+  const date = document.getElementById('ag-date').value;
+  const time = document.getElementById('ag-time').value;
+  const obs  = document.getElementById('ag-obs').value.trim();
+  const idx = findColabByName(nome);
+  if (idx === -1) { notify('Selecione um colaborador da lista', 'error'); return; }
+  if (!date) { notify('Informe a data', 'error'); return; }
+  const entry = {
+    colabIdx: idx,
+    date, time: time || null, obs: obs || null,
+    status: 'AGENDADO',
+    by: currentUser ? (currentUser.displayName || currentUser.email) : 'DESCONHECIDO',
+    byEmail: currentUser ? currentUser.email : null,
+    at: Date.now()
+  };
+  db.ref(`feedback/oneOnOne/${idx}`).push(entry)
+    .then(() => { notify(`1:1 agendado pra ${allColabs[idx].COLABORADOR} em ${formatDate(date)}`); closeAgendarModal(); })
+    .catch(err => notify('Falha ao salvar: ' + (err.message || err), 'error'));
+}
+
+// ── Listeners ──
+function listenFirebase() {
+  // Colaboradores (do controle-presenca)
+  db.ref('presenca/data').on('value', snap => {
+    const val = snap.val();
+    allColabs = Array.isArray(val) ? val : (val ? Object.values(val) : []);
+    initFilters();
+    refreshDashboard();
+    document.getElementById('loading-overlay').classList.remove('show');
+  }, err => {
+    notify('Erro lendo Firebase: ' + (err.message || err), 'error');
+    document.getElementById('loading-overlay').classList.remove('show');
+  });
+  // Agendamentos 1:1 (novo nó)
+  db.ref('feedback/oneOnOne').on('value', snap => {
+    oneOnOnes = snap.val() || {};
+    refreshDashboard();
+  });
+  // Online indicator
+  db.ref('.info/connected').on('value', s => {
+    const dot = document.getElementById('online-dot');
+    const txt = document.getElementById('online-text');
+    dot.style.background = s.val() ? '#34d399' : '#ef4444';
+    txt.textContent = s.val() ? 'Online' : 'Offline';
+  });
+}
+
+function init() {
+  renderAuthUI();
+  completeEmailLinkSignIn();
+  firebase.auth().onAuthStateChanged(user => {
+    currentUser = user;
+    renderAuthUI();
+    refreshDashboard();
+  });
+  listenFirebase();
+  // Timeout de segurança
+  setTimeout(() => {
+    const ov = document.getElementById('loading-overlay');
+    if (ov.classList.contains('show')) {
+      ov.classList.remove('show');
+      notify('Firebase demorou. Verifique conexão.', 'error');
+    }
+  }, 15000);
+}
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
