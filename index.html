@@ -737,7 +737,8 @@ body {
       <span id="online-text">Conectando...</span>
     </div>
     <div id="auth-box">
-      <button id="btn-auth-in" class="topbar-btn" onclick="signInEmailLink()">📧 Entrar</button>
+      <button id="btn-auth-pwd" class="topbar-btn" onclick="openPasswordLoginModal()" title="Login com email + senha (alternativa caso o magic link não chegue)" style="margin-right:4px">🔑 Login</button>
+      <button id="btn-auth-in" class="topbar-btn" onclick="signInEmailLink()">📧 Magic Link</button>
       <div id="auth-user" class="auth-user">
         <img id="auth-avatar" src="" alt="">
         <span id="auth-name" class="nm"></span>
@@ -974,6 +975,36 @@ body {
 
 </div>
 
+<!-- MODAL: Login com Email + Senha -->
+<div class="modal-overlay" id="modal-password-login">
+  <div class="modal" style="width:420px">
+    <div class="modal-title">🔑 Login com Senha</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:14px">Alternativa caso o magic link não chegue no seu email. Use seu email <strong>@mercadolivre.com</strong>.</div>
+    <div class="form-grid" style="grid-template-columns:1fr">
+      <div class="form-group full">
+        <label>Email *</label>
+        <input type="email" id="pwd-email" placeholder="seu.email@mercadolivre.com" autocomplete="email">
+      </div>
+      <div class="form-group full">
+        <label>Senha *</label>
+        <input type="password" id="pwd-password" placeholder="Mínimo 6 caracteres" autocomplete="current-password">
+      </div>
+      <div class="form-group full" style="margin-top:-4px">
+        <label style="display:flex;align-items:center;gap:8px;font-weight:500;font-size:13px;cursor:pointer">
+          <input type="checkbox" id="pwd-is-new"> Primeira vez? Criar nova conta
+        </label>
+      </div>
+      <div id="pwd-hint" style="font-size:12px;color:var(--text3);padding:8px 10px;background:var(--surface2);border-radius:6px"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closePasswordLoginModal()">Cancelar</button>
+      <div style="flex:1"></div>
+      <button class="btn" onclick="resetPassword()" title="Esqueceu a senha? Envia link de reset por email">🔄 Esqueci a senha</button>
+      <button class="btn btn-primary" onclick="submitPasswordLogin()" id="pwd-submit-btn">Entrar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: Realizar 1:1 (com formulário inline) -->
 <div class="modal-overlay" id="modal-realizar">
   <div class="modal" style="width:min(92vw,720px)">
@@ -1105,6 +1136,67 @@ function completeEmailLinkSignIn() {
     .catch(err => notify('Falha ao completar login: ' + (err.message || err), 'error'));
 }
 function signOutUser() { firebase.auth().signOut().then(() => notify('Sessão encerrada')); }
+
+// ── Login com Email + Senha (alternativa ao magic link) ──
+function openPasswordLoginModal() {
+  document.getElementById('pwd-email').value = localStorage.getItem('lastEmail_feedback') || '';
+  document.getElementById('pwd-password').value = '';
+  document.getElementById('pwd-is-new').checked = false;
+  document.getElementById('pwd-hint').textContent = 'Já tem conta? Entre direto. Primeira vez? Marque "Criar nova conta".';
+  document.getElementById('pwd-submit-btn').textContent = 'Entrar';
+  document.getElementById('modal-password-login').classList.add('open');
+  // Reage ao checkbox de criar conta
+  document.getElementById('pwd-is-new').onchange = (e) => {
+    document.getElementById('pwd-submit-btn').textContent = e.target.checked ? 'Criar conta' : 'Entrar';
+    document.getElementById('pwd-hint').textContent = e.target.checked
+      ? 'Será criada uma conta nova com este email + senha. Senha deve ter ao menos 6 caracteres.'
+      : 'Entrando com email e senha existentes.';
+  };
+  setTimeout(() => document.getElementById('pwd-email').focus(), 50);
+}
+function closePasswordLoginModal() {
+  document.getElementById('modal-password-login').classList.remove('open');
+}
+function submitPasswordLogin() {
+  const email = document.getElementById('pwd-email').value.trim().toLowerCase();
+  const pass  = document.getElementById('pwd-password').value;
+  const isNew = document.getElementById('pwd-is-new').checked;
+  if (!email || !pass) return notify('Preencha email e senha', 'error');
+  if (!email.endsWith('@' + ALLOWED_DOMAIN)) {
+    if (!confirm(`Email ${email} não é @${ALLOWED_DOMAIN}. Entrará em modo somente-leitura. Continuar?`)) return;
+  }
+  const btn = document.getElementById('pwd-submit-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Processando...'; }
+
+  const fn = isNew ? 'createUserWithEmailAndPassword' : 'signInWithEmailAndPassword';
+  firebase.auth()[fn](email, pass)
+    .then(() => {
+      localStorage.setItem('lastEmail_feedback', email);
+      closePasswordLoginModal();
+      notify(isNew ? `Conta criada e logado como ${email}` : `Logado como ${email}`);
+    })
+    .catch(err => {
+      const code = err.code || '';
+      let msg = err.message || 'Erro desconhecido';
+      if (code === 'auth/email-already-in-use') msg = 'Email já tem conta — desmarque "Criar nova conta" e use sua senha.';
+      else if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') msg = 'Email ou senha incorretos.';
+      else if (code === 'auth/user-not-found') msg = 'Conta não encontrada — marque "Criar nova conta" pra registrar.';
+      else if (code === 'auth/weak-password') msg = 'Senha muito fraca (mínimo 6 caracteres).';
+      else if (code === 'auth/invalid-email') msg = 'Email inválido.';
+      else if (code === 'auth/operation-not-allowed') msg = 'Login com senha não está habilitado no Firebase. Avisar admin.';
+      notify(msg, 'error');
+    })
+    .finally(() => {
+      if (btn) { btn.disabled = false; btn.textContent = isNew ? 'Criar conta' : 'Entrar'; }
+    });
+}
+function resetPassword() {
+  const email = document.getElementById('pwd-email').value.trim().toLowerCase();
+  if (!email) return notify('Digite seu email primeiro', 'error');
+  firebase.auth().sendPasswordResetEmail(email)
+    .then(() => notify(`Link de reset enviado pra ${email}. Verifica seu inbox.`))
+    .catch(err => notify('Falha: ' + (err.message || err), 'error'));
+}
 function canEdit() {
   if (!currentUser) return false;
   return (currentUser.email||'').toLowerCase().endsWith('@' + ALLOWED_DOMAIN);
@@ -1118,15 +1210,18 @@ function isAdmin() {
 }
 function renderAuthUI() {
   const btnIn = document.getElementById('btn-auth-in');
+  const btnPwd = document.getElementById('btn-auth-pwd');
   const box   = document.getElementById('auth-user');
   if (currentUser) {
     btnIn.style.display = 'none';
+    if (btnPwd) btnPwd.style.display = 'none';
     box.style.display = 'flex';
     document.getElementById('auth-avatar').src = currentUser.photoURL || '';
     document.getElementById('auth-avatar').style.display = currentUser.photoURL ? 'block' : 'none';
     document.getElementById('auth-name').textContent = currentUser.displayName || currentUser.email;
   } else {
     btnIn.style.display = 'inline-block';
+    if (btnPwd) btnPwd.style.display = 'inline-block';
     box.style.display = 'none';
   }
   document.getElementById('readonly-banner').style.display = canEdit() ? 'none' : 'flex';
