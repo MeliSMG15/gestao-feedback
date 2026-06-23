@@ -1190,7 +1190,7 @@ function submitPasswordLogin() {
     let msg = msgOverride || err.message || 'Erro desconhecido';
     if (!msgOverride) {
       if (code === 'auth/email-already-in-use') msg = 'Email já tem conta — desmarque "Criar nova conta" e use sua senha.';
-      else if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') msg = 'Email ou senha incorretos.';
+      else if (code === 'auth/wrong-password' || code === 'auth/invalid-credential' || code === 'auth/invalid-login-credentials') msg = 'Email ou senha incorretos.';
       else if (code === 'auth/user-not-found') msg = 'Conta não encontrada — marque "Criar nova conta" pra registrar.';
       else if (code === 'auth/weak-password') msg = 'Senha muito fraca (mínimo 6 caracteres).';
       else if (code === 'auth/invalid-email') msg = 'Email inválido.';
@@ -1202,14 +1202,28 @@ function submitPasswordLogin() {
 
   if (isPreset) {
     // Tenta entrar; se conta não existir, cria com a senha fixa e entra
+    const NOT_FOUND_CODES = [
+      'auth/user-not-found',
+      'auth/invalid-credential',
+      'auth/invalid-login-credentials', // Firebase 10+ retorna esse pra evitar enum de emails
+      'auth/wrong-password'
+    ];
     firebase.auth().signInWithEmailAndPassword(email, pass)
       .then(done)
       .catch(err => {
         const code = err.code || '';
-        if (code === 'auth/user-not-found' || code === 'auth/invalid-credential') {
+        if (NOT_FOUND_CODES.includes(code)) {
+          // Tenta criar — se já existe com outra senha, cai no catch
           firebase.auth().createUserWithEmailAndPassword(email, pass)
             .then(done)
-            .catch(e2 => onErr(e2))
+            .catch(e2 => {
+              const c2 = e2.code || '';
+              if (c2 === 'auth/email-already-in-use') {
+                onErr(e2, `A conta ${email} existe mas tem outra senha. Use "🔄 Esqueci a senha" pra resetar pra hexa@2026.`);
+              } else {
+                onErr(e2);
+              }
+            })
             .finally(finish);
         } else {
           onErr(err);
