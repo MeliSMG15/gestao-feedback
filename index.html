@@ -737,7 +737,7 @@ body {
       <span id="online-text">Conectando...</span>
     </div>
     <div id="auth-box">
-      <button id="btn-auth-pwd" class="topbar-btn" onclick="openPasswordLoginModal()" title="Login com email + senha (alternativa caso o magic link não chegue)" style="margin-right:4px">🔑 Login</button>
+      <button id="btn-auth-pwd" class="topbar-btn" onclick="openPasswordLoginModal()" title="Login com email + senha (alternativa caso o magic link não chegue)" style="margin-right:4px;display:none">🔑 Login</button>
       <button id="btn-auth-in" class="topbar-btn" onclick="signInEmailLink()">📧 Magic Link</button>
       <div id="auth-user" class="auth-user">
         <img id="auth-avatar" src="" alt="">
@@ -1275,7 +1275,7 @@ function renderAuthUI() {
     document.getElementById('auth-name').textContent = currentUser.displayName || currentUser.email;
   } else {
     btnIn.style.display = 'inline-block';
-    if (btnPwd) btnPwd.style.display = 'inline-block';
+    if (btnPwd) btnPwd.style.display = 'none'; // botão oculto — atalho via console se necessário
     box.style.display = 'none';
   }
   document.getElementById('readonly-banner').style.display = canEdit() ? 'none' : 'flex';
