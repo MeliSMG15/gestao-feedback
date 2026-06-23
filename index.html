@@ -980,6 +980,9 @@ body {
   <div class="modal" style="width:420px">
     <div class="modal-title">🔑 Login com Senha</div>
     <div style="font-size:12px;color:var(--text3);margin-bottom:14px">Alternativa caso o magic link não chegue no seu email. Use seu email <strong>@mercadolivre.com</strong>.</div>
+    <div style="font-size:12px;color:#1e6ae0;background:#eaf2fc;border:1px solid #c7d8ec;padding:8px 10px;border-radius:6px;margin-bottom:12px;line-height:1.5">
+      <strong>Edilaene / Nathalia:</strong> usem a senha <code style="background:#fff;padding:1px 6px;border-radius:4px;font-weight:700">hexa@2026</code> — não precisam marcar "criar conta", o sistema cuida disso automaticamente.
+    </div>
     <div class="form-grid" style="grid-template-columns:1fr">
       <div class="form-group full">
         <label>Email *</label>
@@ -1157,6 +1160,13 @@ function openPasswordLoginModal() {
 function closePasswordLoginModal() {
   document.getElementById('modal-password-login').classList.remove('open');
 }
+// Lista de pré-cadastrados que entram com a senha fixa "hexa@2026"
+// (atalho enquanto o magic link/EmailJS estiver com limite)
+const PRESET_USERS = {
+  'edilaene.voliveira@mercadolivre.com': 'hexa@2026',
+  'nathalia.hsantos@mercadolivre.com':   'hexa@2026'
+};
+
 function submitPasswordLogin() {
   const email = document.getElementById('pwd-email').value.trim().toLowerCase();
   const pass  = document.getElementById('pwd-password').value;
@@ -1168,27 +1178,52 @@ function submitPasswordLogin() {
   const btn = document.getElementById('pwd-submit-btn');
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Processando...'; }
 
-  const fn = isNew ? 'createUserWithEmailAndPassword' : 'signInWithEmailAndPassword';
-  firebase.auth()[fn](email, pass)
-    .then(() => {
-      localStorage.setItem('lastEmail_feedback', email);
-      closePasswordLoginModal();
-      notify(isNew ? `Conta criada e logado como ${email}` : `Logado como ${email}`);
-    })
-    .catch(err => {
-      const code = err.code || '';
-      let msg = err.message || 'Erro desconhecido';
+  // Atalho: se é usuário pré-cadastrado E senha bate, tenta signIn; se conta não existe, cria com a mesma senha
+  const isPreset = PRESET_USERS[email] && PRESET_USERS[email] === pass;
+  const done = () => {
+    localStorage.setItem('lastEmail_feedback', email);
+    closePasswordLoginModal();
+    notify(`Logado como ${email}`);
+  };
+  const onErr = (err, msgOverride) => {
+    const code = err.code || '';
+    let msg = msgOverride || err.message || 'Erro desconhecido';
+    if (!msgOverride) {
       if (code === 'auth/email-already-in-use') msg = 'Email já tem conta — desmarque "Criar nova conta" e use sua senha.';
       else if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') msg = 'Email ou senha incorretos.';
       else if (code === 'auth/user-not-found') msg = 'Conta não encontrada — marque "Criar nova conta" pra registrar.';
       else if (code === 'auth/weak-password') msg = 'Senha muito fraca (mínimo 6 caracteres).';
       else if (code === 'auth/invalid-email') msg = 'Email inválido.';
       else if (code === 'auth/operation-not-allowed') msg = 'Login com senha não está habilitado no Firebase. Avisar admin.';
-      notify(msg, 'error');
-    })
-    .finally(() => {
-      if (btn) { btn.disabled = false; btn.textContent = isNew ? 'Criar conta' : 'Entrar'; }
-    });
+    }
+    notify(msg, 'error');
+  };
+  const finish = () => { if (btn) { btn.disabled = false; btn.textContent = isNew ? 'Criar conta' : 'Entrar'; } };
+
+  if (isPreset) {
+    // Tenta entrar; se conta não existir, cria com a senha fixa e entra
+    firebase.auth().signInWithEmailAndPassword(email, pass)
+      .then(done)
+      .catch(err => {
+        const code = err.code || '';
+        if (code === 'auth/user-not-found' || code === 'auth/invalid-credential') {
+          firebase.auth().createUserWithEmailAndPassword(email, pass)
+            .then(done)
+            .catch(e2 => onErr(e2))
+            .finally(finish);
+        } else {
+          onErr(err);
+          finish();
+        }
+      });
+    return;
+  }
+
+  const fn = isNew ? 'createUserWithEmailAndPassword' : 'signInWithEmailAndPassword';
+  firebase.auth()[fn](email, pass)
+    .then(done)
+    .catch(onErr)
+    .finally(finish);
 }
 function resetPassword() {
   const email = document.getElementById('pwd-email').value.trim().toLowerCase();
