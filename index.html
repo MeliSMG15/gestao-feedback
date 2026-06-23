@@ -981,7 +981,8 @@ body {
     <div class="modal-title">🔑 Login com Senha</div>
     <div style="font-size:12px;color:var(--text3);margin-bottom:14px">Alternativa caso o magic link não chegue no seu email. Use seu email <strong>@mercadolivre.com</strong>.</div>
     <div style="font-size:12px;color:#1e6ae0;background:#eaf2fc;border:1px solid #c7d8ec;padding:8px 10px;border-radius:6px;margin-bottom:12px;line-height:1.5">
-      <strong>Edilaene / Nathalia:</strong> usem a senha <code style="background:#fff;padding:1px 6px;border-radius:4px;font-weight:700">hexa@2026</code> — não precisam marcar "criar conta", o sistema cuida disso automaticamente.
+      <strong>Edilaene / Nathalia:</strong> usem a senha <code style="background:#fff;padding:1px 6px;border-radius:4px;font-weight:700">hexa@2026</code> — não precisam marcar "criar conta".<br>
+      <span style="color:#475569">Se já tentaram o magic link antes, chegará um <strong>email de reset</strong> primeiro pra definir essa senha (clica no link, define <code style="background:#fff;padding:1px 4px;border-radius:3px">hexa@2026</code> e volta aqui).</span>
     </div>
     <div class="form-grid" style="grid-template-columns:1fr">
       <div class="form-group full">
@@ -1201,35 +1202,39 @@ function submitPasswordLogin() {
   const finish = () => { if (btn) { btn.disabled = false; btn.textContent = isNew ? 'Criar conta' : 'Entrar'; } };
 
   if (isPreset) {
-    // Tenta entrar; se conta não existir, cria com a senha fixa e entra
-    const NOT_FOUND_CODES = [
-      'auth/user-not-found',
-      'auth/invalid-credential',
-      'auth/invalid-login-credentials', // Firebase 10+ retorna esse pra evitar enum de emails
-      'auth/wrong-password'
-    ];
-    firebase.auth().signInWithEmailAndPassword(email, pass)
-      .then(done)
-      .catch(err => {
-        const code = err.code || '';
-        if (NOT_FOUND_CODES.includes(code)) {
-          // Tenta criar — se já existe com outra senha, cai no catch
-          firebase.auth().createUserWithEmailAndPassword(email, pass)
-            .then(done)
-            .catch(e2 => {
-              const c2 = e2.code || '';
-              if (c2 === 'auth/email-already-in-use') {
-                onErr(e2, `A conta ${email} existe mas tem outra senha. Use "🔄 Esqueci a senha" pra resetar pra hexa@2026.`);
-              } else {
-                onErr(e2);
-              }
-            })
-            .finally(finish);
-        } else {
-          onErr(err);
-          finish();
+    // Estratégia: descobre PRIMEIRO se a conta já existe (e como)
+    // - sem nenhum método → cria com senha fixa
+    // - já com password → tenta signin direto
+    // - só emailLink → manda reset de senha (pra ela definir a senha do zero)
+    console.log('[preset-login] email:', email);
+    firebase.auth().fetchSignInMethodsForEmail(email)
+      .then(methods => {
+        console.log('[preset-login] métodos atuais:', methods);
+        if (!methods || methods.length === 0) {
+          // Conta não existe → cria com senha fixa
+          return firebase.auth().createUserWithEmailAndPassword(email, pass).then(done);
         }
-      });
+        if (methods.includes('password')) {
+          // Já tem senha → tenta entrar; se errado, manda reset
+          return firebase.auth().signInWithEmailAndPassword(email, pass)
+            .then(done)
+            .catch(err => {
+              // senha cadastrada é diferente — manda reset pra ela trocar
+              return firebase.auth().sendPasswordResetEmail(email).then(() => {
+                onErr(err, `Senha desta conta é diferente de "hexa@2026". Enviei um link de reset pra ${email} — abra o link, defina "hexa@2026" como nova senha e tente entrar de novo.`);
+              }).catch(e3 => onErr(e3));
+            });
+        }
+        // Conta só tem emailLink — manda reset pra ela criar senha
+        return firebase.auth().sendPasswordResetEmail(email).then(() => {
+          onErr({ code: 'auth/no-password' }, `A conta ${email} ainda não tem senha (foi criada via magic link). Acabei de enviar um link de reset pra ${email} — abra o link, defina "hexa@2026" e tente entrar de novo aqui.`);
+        });
+      })
+      .catch(err => {
+        console.error('[preset-login] erro:', err);
+        onErr(err);
+      })
+      .finally(finish);
     return;
   }
 
