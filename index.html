@@ -737,9 +737,10 @@ body {
       <span id="online-text">Conectando...</span>
     </div>
     <div id="auth-box">
+      <button class="topbar-btn" onclick="refreshColabsFromSheet().then(n => n>0 && notify(`✓ ${n} colabs atualizados do Sheets`))" title="Sincroniza a lista de colaboradores com o Google Sheets agora">🔄 Sincronizar Sheets</button>
       <button id="btn-auth-pwd" class="topbar-btn" onclick="openPasswordLoginModal()" title="Login com email + senha (alternativa caso o magic link não chegue)" style="margin-right:4px;display:none">🔑 Login</button>
-      <button id="btn-auth-in" class="topbar-btn" onclick="signInEmailLink()">📧 Magic Link</button>
-      <div id="auth-user" class="auth-user">
+      <button id="btn-auth-in" class="topbar-btn" onclick="signInEmailLink()" style="display:none">📧 Magic Link</button>
+      <div id="auth-user" class="auth-user" style="display:none">
         <img id="auth-avatar" src="" alt="">
         <span id="auth-name" class="nm"></span>
         <button class="topbar-btn" onclick="signOutUser()" style="padding:4px 10px;font-size:11px">Sair</button>
@@ -1095,8 +1096,52 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const ALLOWED_DOMAIN = 'mercadolivre.com';
 
+// ── Fonte de verdade dos colaboradores: Google Sheets (não mais Firebase) ──
+// Sheet precisa estar acessível como "qualquer pessoa com o link pode visualizar"
+const SHEET_ID  = '1JzYwynUuVH2CLcYzTj2wEx-Fsai_H19zUMHBGu9cVkE';
+const SHEET_GID = '911362037';
+const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
+
+// Parser CSV simples (respeita aspas)
+function _parseCSV(text) {
+  const rows = [];
+  let cur = [], field = '', inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i], n = text[i+1];
+    if (inQ) {
+      if (c === '"' && n === '"') { field += '"'; i++; }
+      else if (c === '"') inQ = false;
+      else field += c;
+    } else {
+      if (c === '"') inQ = true;
+      else if (c === ',') { cur.push(field); field = ''; }
+      else if (c === '\n') { cur.push(field); rows.push(cur); cur = []; field = ''; }
+      else if (c === '\r') { /* skip */ }
+      else field += c;
+    }
+  }
+  if (field !== '' || cur.length) { cur.push(field); rows.push(cur); }
+  return rows;
+}
+
+async function fetchColabsFromSheet() {
+  const res = await fetch(SHEET_CSV_URL + '&_=' + Date.now(), { cache: 'no-store' });
+  if (!res.ok) throw new Error(`Sheets HTTP ${res.status} — sheet precisa estar como "qualquer pessoa com link pode visualizar"`);
+  const text = await res.text();
+  const rows = _parseCSV(text);
+  if (!rows.length) return [];
+  const headers = rows[0].map(h => h.trim());
+  return rows.slice(1)
+    .filter(r => r.some(c => (c||'').trim())) // remove linhas totalmente vazias
+    .map(r => {
+      const obj = {};
+      headers.forEach((h, i) => { obj[h] = ((r[i] ?? '')+'').trim(); });
+      return obj;
+    });
+}
+
 // ── Estado ──
-let allColabs = [];        // lê de presenca/data
+let allColabs = [];        // lê do Google Sheets
 let oneOnOnes = {};        // lê de feedback/oneOnOne
 let currentUser = null;
 
@@ -2121,19 +2166,28 @@ const _origCloseAgendarModal = closeAgendarModal;
 closeAgendarModal = function() { _editingAgRef = null; _origCloseAgendarModal(); };
 
 // ── Listeners ──
-function listenFirebase() {
-  // Colaboradores (do controle-presenca)
-  db.ref('presenca/data').on('value', snap => {
-    const val = snap.val();
-    allColabs = Array.isArray(val) ? val : (val ? Object.values(val) : []);
+let _sheetsRefreshTimer = null;
+async function refreshColabsFromSheet() {
+  try {
+    const colabs = await fetchColabsFromSheet();
+    allColabs = colabs;
     initFilters();
     refreshDashboard();
     document.getElementById('loading-overlay').classList.remove('show');
-  }, err => {
-    notify('Erro lendo Firebase: ' + (err.message || err), 'error');
+    return colabs.length;
+  } catch (e) {
+    console.error('[sheets]', e);
+    notify('Erro ao ler Sheets: ' + (e.message || e), 'error');
     document.getElementById('loading-overlay').classList.remove('show');
-  });
-  // Agendamentos 1:1 (novo nó)
+    return -1;
+  }
+}
+function listenFirebase() {
+  // Colaboradores agora vêm do Google Sheets — fetch inicial + auto-refresh a cada 5 min
+  refreshColabsFromSheet();
+  if (_sheetsRefreshTimer) clearInterval(_sheetsRefreshTimer);
+  _sheetsRefreshTimer = setInterval(refreshColabsFromSheet, 5 * 60 * 1000);
+  // Agendamentos 1:1 continuam no Firebase
   db.ref('feedback/oneOnOne').on('value', snap => {
     oneOnOnes = snap.val() || {};
     refreshDashboard();
@@ -2166,6 +2220,42 @@ function init() {
   }, 15000);
 }
 window.addEventListener('DOMContentLoaded', init);
+
+// ── MODO ABERTO — sem login, todas as permissões liberadas ──
+(function unlockOpenMode() {
+  canEdit = () => true;
+  isAdmin = () => true;
+
+  const fakeUser = { email: 'admin@meli.local', displayName: 'ADMIN', uid: 'admin-local', providerData: [{ providerId:'custom', email:'admin@meli.local' }] };
+  window.currentUser = fakeUser;
+
+  // Esconde UI de login/leitura
+  const style = document.createElement('style');
+  style.textContent = `
+    #btn-auth-in, #btn-auth-pwd, #auth-user, #readonly-banner { display: none !important; }
+  `;
+  document.head.appendChild(style);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    // Anon sign-in pra passar em regras Firebase "auth != null"
+    try {
+      firebase.auth().signInAnonymously().catch(err => {
+        console.warn('[unlock] signInAnonymously falhou. Habilite Anonymous no Firebase Auth Console:', err);
+      });
+    } catch(e) { console.warn('[unlock] anon init:', e); }
+    // Força fakeUser sobre o que Firebase Auth reportar
+    const forceFake = () => {
+      window.currentUser = fakeUser;
+      try {
+        renderAuthUI && renderAuthUI();
+        refreshDashboard && refreshDashboard();
+      } catch(e){}
+    };
+    try { firebase.auth().onAuthStateChanged(forceFake); } catch(e){}
+    let n = 0;
+    const iv = setInterval(() => { forceFake(); if (++n >= 5) clearInterval(iv); }, 2000);
+  });
+})();
 </script>
 </body>
 </html>
