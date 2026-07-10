@@ -1100,7 +1100,8 @@ const ALLOWED_DOMAIN = 'mercadolivre.com';
 // Sheet precisa estar acessível como "qualquer pessoa com o link pode visualizar"
 const SHEET_ID  = '1JzYwynUuVH2CLcYzTj2wEx-Fsai_H19zUMHBGu9cVkE';
 const SHEET_GID = '911362037';
-const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
+// Endpoint gviz (CORS aberto), retorna CSV direto sem redirect pra outro domínio
+const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`;
 
 // Parser CSV simples (respeita aspas)
 function _parseCSV(text) {
@@ -1125,14 +1126,25 @@ function _parseCSV(text) {
 }
 
 async function fetchColabsFromSheet() {
-  const res = await fetch(SHEET_CSV_URL + '&_=' + Date.now(), { cache: 'no-store' });
-  if (!res.ok) throw new Error(`Sheets HTTP ${res.status} — sheet precisa estar como "qualquer pessoa com link pode visualizar"`);
+  let res;
+  try {
+    res = await fetch(SHEET_CSV_URL + '&_=' + Date.now(), { cache: 'no-store' });
+  } catch (e) {
+    // "Failed to fetch" — normalmente CORS ou rede
+    throw new Error('Falha de rede/CORS ao acessar Sheets. Verifica se o compartilhamento tá como "Qualquer pessoa com o link" e não está sob paywall.');
+  }
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403) {
+      throw new Error(`Acesso negado (HTTP ${res.status}). Sheet precisa estar como "Qualquer pessoa com o link" - Leitor.`);
+    }
+    throw new Error(`Sheets HTTP ${res.status}`);
+  }
   const text = await res.text();
   const rows = _parseCSV(text);
-  if (!rows.length) return [];
+  if (!rows.length) throw new Error('Sheets retornou vazio — verifique o GID');
   const headers = rows[0].map(h => h.trim());
   return rows.slice(1)
-    .filter(r => r.some(c => (c||'').trim())) // remove linhas totalmente vazias
+    .filter(r => r.some(c => (c||'').trim()))
     .map(r => {
       const obj = {};
       headers.forEach((h, i) => { obj[h] = ((r[i] ?? '')+'').trim(); });
