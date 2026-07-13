@@ -1076,6 +1076,28 @@ body {
   </div>
 </div>
 
+<!-- MODAL: Senha pra acessar Respostas -->
+<div class="modal-overlay" id="modal-resp-lock">
+  <div class="modal" style="width:420px">
+    <div class="modal-title">🔒 Acesso restrito</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:18px;line-height:1.55">
+      As respostas dos 1:1 contêm informações sensíveis. Digite a senha compartilhada pra continuar.
+    </div>
+    <div class="form-grid" style="grid-template-columns:1fr">
+      <div class="form-group full">
+        <label>Senha *</label>
+        <input type="password" id="resp-lock-pwd" placeholder="Digite a senha..." onkeypress="if(event.key==='Enter') submitRespLock()" autocomplete="current-password">
+        <div id="resp-lock-hint" style="font-size:11px;color:var(--text3);margin-top:6px">Após entrar, o acesso fica salvo por 7 dias neste navegador.</div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost" onclick="closeRespLockModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="submitRespLock()" id="resp-lock-btn">🔓 Entrar</button>
+    </div>
+  </div>
+</div>
+
 <div class="notification" id="notification"></div>
 <div class="loading-overlay show" id="loading-overlay"><div class="spinner"></div></div>
 
@@ -1338,8 +1360,61 @@ function renderAuthUI() {
   document.getElementById('readonly-banner').style.display = canEdit() ? 'none' : 'flex';
 }
 
+// ── Senha compartilhada pra acessar Respostas (persistente 7 dias em localStorage) ──
+const RESP_PASSWORD  = 'smg15@2026';
+const RESP_LOCK_KEY  = 'resp_unlock_until';
+const RESP_LOCK_TTL  = 7 * 24 * 60 * 60 * 1000; // 7 dias em ms
+function _isRespUnlocked() {
+  try {
+    const until = parseInt(localStorage.getItem(RESP_LOCK_KEY) || '0', 10);
+    return until > Date.now();
+  } catch(e) { return false; }
+}
+function _unlockResp() {
+  try { localStorage.setItem(RESP_LOCK_KEY, String(Date.now() + RESP_LOCK_TTL)); } catch(e){}
+}
+function _lockResp() {
+  try { localStorage.removeItem(RESP_LOCK_KEY); } catch(e){}
+}
+function openRespLockModal(onSuccess) {
+  const modal = document.getElementById('modal-resp-lock');
+  const pwd   = document.getElementById('resp-lock-pwd');
+  const hint  = document.getElementById('resp-lock-hint');
+  pwd.value = '';
+  hint.textContent = 'Após entrar, o acesso fica salvo por 7 dias neste navegador.';
+  hint.style.color = 'var(--text3)';
+  modal.classList.add('open');
+  setTimeout(() => pwd.focus(), 80);
+  window._respLockCb = typeof onSuccess === 'function' ? onSuccess : null;
+}
+function closeRespLockModal() {
+  document.getElementById('modal-resp-lock').classList.remove('open');
+  window._respLockCb = null;
+}
+function submitRespLock() {
+  const pwd  = document.getElementById('resp-lock-pwd').value;
+  const hint = document.getElementById('resp-lock-hint');
+  if (pwd === RESP_PASSWORD) {
+    _unlockResp();
+    const cb = window._respLockCb;
+    closeRespLockModal();
+    notify('🔓 Acesso liberado por 7 dias');
+    if (cb) cb();
+  } else {
+    hint.textContent = '❌ Senha incorreta. Tenta novamente.';
+    hint.style.color = '#f87171';
+    document.getElementById('resp-lock-pwd').value = '';
+    document.getElementById('resp-lock-pwd').focus();
+  }
+}
+
 // ── Tab switching ──
 function switchTab(name) {
+  // Aba "respostas" exige senha (fica destravada 7 dias após acertar)
+  if (name === 'respostas' && !_isRespUnlocked()) {
+    openRespLockModal(() => switchTab('respostas'));
+    return;
+  }
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('view-' + name).classList.add('active');
@@ -1349,6 +1424,9 @@ function switchTab(name) {
   if (name === 'comparativo') refreshComparativo();
   if (name === 'respostas')   refreshRespostas();
 }
+
+// Bloqueia manualmente (útil pra dar logout do modo protegido — chame no console: lockResp())
+window.lockResp = () => { _lockResp(); notify('🔒 Acesso às respostas bloqueado. Vai pedir senha da próxima vez.'); };
 
 // ── Init filters: mês corrente e líderes ──
 function initFilters() {
