@@ -1874,6 +1874,11 @@ let _editingAgRef = null;
 // ── Modal REALIZAR (com forms inline) ──
 let _realizingRef = null;
 function openRealizarModal(idx, id, readonly) {
+  // Ver 1:1 já realizado (readonly) exige senha — mesma senha das Respostas, persistência 7 dias
+  if (readonly && !_isRespUnlocked()) {
+    openRespLockModal(() => openRealizarModal(idx, id, readonly));
+    return;
+  }
   if (!readonly && !canEdit()) return notify('Sem permissão', 'error');
   _realizingRef = { idx, id, readonly: !!readonly };
   const o = (oneOnOnes[idx]||{})[id];
