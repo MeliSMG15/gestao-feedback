@@ -2272,8 +2272,8 @@ async function saveAgendamento() {
     byEmail: (u && !u.isAnonymous) ? u.email : null,
     at: Date.now()
   };
-  if (_editingAgRef && _editingAgRef.idx === idx) {
-    // Edição — atualiza campos sem mexer no status/form
+  if (_editingAgRef) {
+    // Edição — usa sempre o idx/id originais do registro, independente do idx atual do form
     const upd = {};
     upd[`feedback/oneOnOne/${_editingAgRef.idx}/${_editingAgRef.id}/date`] = data.date;
     upd[`feedback/oneOnOne/${_editingAgRef.idx}/${_editingAgRef.id}/time`] = data.time;
