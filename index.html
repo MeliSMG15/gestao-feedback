@@ -1335,6 +1335,24 @@ function canEdit() {
   return (currentUser.email||'').toLowerCase().endsWith('@' + ALLOWED_DOMAIN);
 }
 
+// Renova o token antes de escrever no Firebase — resolve permission_denied por token expirado
+async function ensureFreshToken() {
+  if (currentUser) {
+    try { await currentUser.getIdToken(true); }
+    catch(e) { throw new Error('Sessão expirada. Faça logout e login novamente.'); }
+  }
+}
+
+// Exibe mensagem clara se o Firebase recusar a escrita
+function handleWriteError(e) {
+  const msg = e.message || String(e);
+  if (msg.includes('PERMISSION_DENIED') || msg.includes('permission_denied')) {
+    notify('Sem permissão de escrita. Faça logout e login novamente com seu email @mercadolivre.com.', 'error');
+  } else {
+    notify('Falha: ' + msg, 'error');
+  }
+}
+
 // Admin: só esse email pode excluir respostas
 const ADMIN_EMAIL = 'acre.gomes@mercadolivre.com';
 function isAdmin() {
@@ -1836,25 +1854,28 @@ function refresh1on1Table() {
 }
 
 // Ações na lista
-function cancelarAg(idx, id) {
+async function cancelarAg(idx, id) {
   if (!canEdit()) return notify('Sem permissão', 'error');
   if (!confirm('Cancelar este agendamento?')) return;
+  try { await ensureFreshToken(); } catch(e) { return notify(e.message, 'error'); }
   db.ref(`feedback/oneOnOne/${idx}/${id}/status`).set('CANCELADO')
     .then(() => notify('Agendamento cancelado'))
-    .catch(e => notify('Falha: ' + e.message, 'error'));
+    .catch(handleWriteError);
 }
-function reativarAg(idx, id) {
+async function reativarAg(idx, id) {
   if (!canEdit()) return notify('Sem permissão', 'error');
+  try { await ensureFreshToken(); } catch(e) { return notify(e.message, 'error'); }
   db.ref(`feedback/oneOnOne/${idx}/${id}/status`).set('AGENDADO')
     .then(() => notify('Agendamento reativado'))
-    .catch(e => notify('Falha: ' + e.message, 'error'));
+    .catch(handleWriteError);
 }
-function excluirAg(idx, id) {
+async function excluirAg(idx, id) {
   if (!canEdit()) return notify('Sem permissão', 'error');
   if (!confirm('Excluir definitivamente este registro? Esta ação não pode ser desfeita.')) return;
+  try { await ensureFreshToken(); } catch(e) { return notify(e.message, 'error'); }
   db.ref(`feedback/oneOnOne/${idx}/${id}`).remove()
     .then(() => notify('Removido'))
-    .catch(e => notify('Falha: ' + e.message, 'error'));
+    .catch(handleWriteError);
 }
 function editarAg(idx, id) {
   if (!canEdit()) return notify('Sem permissão', 'error');
@@ -1920,7 +1941,7 @@ function closeRealizarModal() {
   document.getElementById('modal-realizar').classList.remove('open');
   _realizingRef = null;
 }
-function saveRealizar() {
+async function saveRealizar() {
   if (!canEdit()) return notify('Sem permissão', 'error');
   if (!_realizingRef) return;
   const { idx, id } = _realizingRef;
@@ -1929,6 +1950,7 @@ function saveRealizar() {
   const checked = document.querySelector('input[name="rz-class"]:checked');
   if (!pontosColab || !pontosOrient) return notify('Preencha os pontos do colab e os pontos orientados', 'error');
   if (!checked) return notify('Selecione a classificação', 'error');
+  try { await ensureFreshToken(); } catch(e) { return notify(e.message, 'error'); }
   const form = {
     tipoContrato: document.getElementById('rz-tipo').value.trim(),
     date: document.getElementById('rz-date').value,
@@ -1945,7 +1967,7 @@ function saveRealizar() {
   };
   db.ref().update(update)
     .then(() => { notify('1:1 concluído ✓'); closeRealizarModal(); })
-    .catch(e => notify('Falha: ' + e.message, 'error'));
+    .catch(handleWriteError);
 }
 
 // ── Aba RESPOSTAS ──
@@ -2179,13 +2201,14 @@ function reabrirParaEditar(idx, id) {
 }
 
 // Excluir resposta — apenas admin (acre.gomes@mercadolivre.com)
-function excluirResposta(idx, id, nome) {
+async function excluirResposta(idx, id, nome) {
   if (!isAdmin()) return notify('Apenas o admin pode excluir respostas', 'error');
   const label = nome ? ` de ${nome}` : '';
   if (!confirm(`Excluir definitivamente a resposta${label}?\n\nEssa ação NÃO pode ser desfeita. O agendamento também será removido.`)) return;
+  try { await ensureFreshToken(); } catch(e) { return notify(e.message, 'error'); }
   db.ref(`feedback/oneOnOne/${idx}/${id}`).remove()
     .then(() => notify('Resposta excluída'))
-    .catch(e => notify('Falha ao excluir: ' + (e.message || e), 'error'));
+    .catch(handleWriteError);
 }
 
 function exportRespostasCSV() {
@@ -2224,7 +2247,7 @@ function exportRespostasCSV() {
 }
 
 // Sobrescreve saveAgendamento pra suportar edição
-function saveAgendamento() {
+async function saveAgendamento() {
   if (!canEdit()) { notify('Sem permissão', 'error'); return; }
   const nome = document.getElementById('ag-colab').value.trim();
   const date = document.getElementById('ag-date').value;
@@ -2233,6 +2256,7 @@ function saveAgendamento() {
   const idx = findColabByName(nome);
   if (idx === -1) { notify('Selecione um colaborador da lista', 'error'); return; }
   if (!date) { notify('Informe a data', 'error'); return; }
+  try { await ensureFreshToken(); } catch(e) { return notify(e.message, 'error'); }
   const data = {
     colabIdx: idx,
     date, time: time || null, obs: obs || null,
@@ -2248,12 +2272,12 @@ function saveAgendamento() {
     upd[`feedback/oneOnOne/${_editingAgRef.idx}/${_editingAgRef.id}/obs`]  = data.obs;
     db.ref().update(upd)
       .then(() => { notify('Agendamento atualizado'); closeAgendarModal(); _editingAgRef = null; })
-      .catch(e => notify('Falha: ' + e.message, 'error'));
+      .catch(handleWriteError);
   } else {
     data.status = 'AGENDADO';
     db.ref(`feedback/oneOnOne/${idx}`).push(data)
       .then(() => { notify(`1:1 agendado pra ${allColabs[idx].COLABORADOR}`); closeAgendarModal(); })
-      .catch(err => notify('Falha: ' + (err.message || err), 'error'));
+      .catch(handleWriteError);
   }
 }
 // limpar _editingAgRef ao fechar o modal de agendar
@@ -2354,3 +2378,4 @@ window.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>
+
