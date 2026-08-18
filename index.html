@@ -954,6 +954,7 @@ body {
       <div>
         <h1>📝 Respostas dos 1:1 Realizados</h1>
         <div class="sub" id="resp-subtitle">Total: —</div>
+        <span id="resp-viewer-badge" style="display:none;font-size:11px;background:#dbeafe;color:#1d4ed8;padding:3px 10px;border-radius:20px;font-weight:700;margin-top:4px"></span>
       </div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <select id="resp-filter-lider" onchange="refreshRespostas()" class="filter-input">
@@ -1081,7 +1082,7 @@ body {
   <div class="modal" style="width:420px">
     <div class="modal-title">🔒 Acesso restrito</div>
     <div style="font-size:13px;color:var(--text2);margin-bottom:18px;line-height:1.55">
-      As respostas dos 1:1 contêm informações sensíveis. Digite a senha compartilhada pra continuar.
+      As respostas dos 1:1 contêm informações sensíveis. Digite sua senha de acesso pra continuar.
     </div>
     <div class="form-grid" style="grid-template-columns:1fr">
       <div class="form-group full">
@@ -1386,21 +1387,37 @@ function renderAuthUI() {
   document.getElementById('readonly-banner').style.display = canEdit() ? 'none' : 'flex';
 }
 
-// ── Senha compartilhada pra acessar Respostas (persistente 7 dias em localStorage) ──
-const RESP_PASSWORD  = 'smg15@2026';
+// ── Senhas por líder pra acessar Respostas (persistente 7 dias em localStorage) ──
+// ADMIN vê todas; cada líder vê só os colaboradores dele.
+const LIDER_PASSWORDS = {
+  'ADMIN':    'smg15@2026',
+  'ACLISON':  'Aclison@4823',
+  'NATHÁLIA': 'Nathalia@7156',
+  'STÉFANI':  'Stefani@3094',
+  'CARLOS':   'Carlos@6512',
+  'LUCAS':    'Lucas@8347',
+  'THIAGO':   'Thiago@2681'
+};
 const RESP_LOCK_KEY  = 'resp_unlock_until';
-const RESP_LOCK_TTL  = 7 * 24 * 60 * 60 * 1000; // 7 dias em ms
+const RESP_LIDER_KEY = 'resp_lider_atual';
+const RESP_LOCK_TTL  = 7 * 24 * 60 * 60 * 1000;
 function _isRespUnlocked() {
   try {
     const until = parseInt(localStorage.getItem(RESP_LOCK_KEY) || '0', 10);
     return until > Date.now();
   } catch(e) { return false; }
 }
-function _unlockResp() {
-  try { localStorage.setItem(RESP_LOCK_KEY, String(Date.now() + RESP_LOCK_TTL)); } catch(e){}
+function _getRespLider() {
+  try { return localStorage.getItem(RESP_LIDER_KEY) || 'ADMIN'; } catch(e) { return 'ADMIN'; }
+}
+function _unlockResp(lider) {
+  try {
+    localStorage.setItem(RESP_LOCK_KEY, String(Date.now() + RESP_LOCK_TTL));
+    localStorage.setItem(RESP_LIDER_KEY, lider);
+  } catch(e) {}
 }
 function _lockResp() {
-  try { localStorage.removeItem(RESP_LOCK_KEY); } catch(e){}
+  try { localStorage.removeItem(RESP_LOCK_KEY); localStorage.removeItem(RESP_LIDER_KEY); } catch(e){}
 }
 function openRespLockModal(onSuccess) {
   const modal = document.getElementById('modal-resp-lock');
@@ -1418,13 +1435,15 @@ function closeRespLockModal() {
   window._respLockCb = null;
 }
 function submitRespLock() {
-  const pwd  = document.getElementById('resp-lock-pwd').value;
+  const pwd  = document.getElementById('resp-lock-pwd').value.trim();
   const hint = document.getElementById('resp-lock-hint');
-  if (pwd === RESP_PASSWORD) {
-    _unlockResp();
+  const entry = Object.entries(LIDER_PASSWORDS).find(([, p]) => p === pwd);
+  if (entry) {
+    const lider = entry[0];
+    _unlockResp(lider);
     const cb = window._respLockCb;
     closeRespLockModal();
-    notify('🔓 Acesso liberado por 7 dias');
+    notify(lider === 'ADMIN' ? '🔓 Acesso total liberado por 7 dias' : `🔓 Acesso de ${lider} liberado por 7 dias`);
     if (cb) cb();
   } else {
     hint.textContent = '❌ Senha incorreta. Tenta novamente.';
@@ -1992,16 +2011,32 @@ async function saveRealizar() {
 
 // ── Aba RESPOSTAS ──
 function refreshRespostas() {
+  const liderAutenticado = _isRespUnlocked() ? _getRespLider() : 'ADMIN';
+  const isAdmin = liderAutenticado === 'ADMIN';
+
+  // Atualiza badge de quem está visualizando
+  const badge = document.getElementById('resp-viewer-badge');
+  if (badge) {
+    badge.textContent = isAdmin ? '' : `👁 Visualizando como: ${liderAutenticado}`;
+    badge.style.display = isAdmin ? 'none' : 'inline-block';
+  }
+
+  // Líderes não-admin não podem filtrar por outros líderes — oculta o select
+  const liderSelect = document.getElementById('resp-filter-lider');
+  if (liderSelect) {
+    liderSelect.style.display = isAdmin ? '' : 'none';
+  }
+
   _populateLiderFilter('resp-filter-lider');
   _populateMesFilter('resp-filter-mes');
 
-  const lider   = document.getElementById('resp-filter-lider').value;
+  const lider   = isAdmin ? document.getElementById('resp-filter-lider').value : liderAutenticado;
   const classif = document.getElementById('resp-filter-class').value;
   const mes     = document.getElementById('resp-filter-mes').value;
   const search  = (document.getElementById('resp-filter-search').value || '').trim().toLowerCase();
 
   let list = flatAgendamentos().filter(o => o.status === 'REALIZADO' && o.form);
-  if (lider)   list = list.filter(o => (o.colab['LÍDER']||'').trim() === lider);
+  if (lider)   list = list.filter(o => (o.colab['LÍDER']||'').trim().toUpperCase() === lider.toUpperCase());
   if (classif) list = list.filter(o => o.form.classificacao === classif);
   if (mes)     list = list.filter(o => (o.form.date || o.date || '').startsWith(mes));
   if (search)  list = list.filter(o => (o.colab.COLABORADOR||'').toLowerCase().includes(search));
