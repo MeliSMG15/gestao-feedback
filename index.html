@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -2096,7 +2096,7 @@ function refreshRespostas() {
         <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
           <button class="action-btn primary" onclick="event.stopPropagation();openRealizarModal('${o.idx}','${o.id}',true)">👁 Abrir em modal</button>
           ${canEdit() ? `<button class="action-btn" onclick="event.stopPropagation();reabrirParaEditar('${o.idx}','${o.id}')">✏ Reabrir e editar</button>` : ''}
-          ${isAdmin() ? `<button class="action-btn danger" onclick="event.stopPropagation();excluirResposta('${o.idx}','${o.id}','${(o.colab.COLABORADOR||'').replace(/'/g,'\\\'').replace(/"/g,'&quot;')}')">🗑 Excluir resposta</button>` : ''}
+          ${isAdmin ? `<button class="action-btn danger" onclick="event.stopPropagation();excluirResposta('${o.idx}','${o.id}','${(o.colab.COLABORADOR||'').replace(/'/g,'\\\'').replace(/"/g,'&quot;')}')">🗑 Excluir resposta</button>` : ''}
         </div>
       </div>
     </div>
