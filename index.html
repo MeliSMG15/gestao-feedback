@@ -2035,6 +2035,15 @@ function refreshRespostas() {
   _populateLiderFilter('resp-filter-lider');
   _populateMesFilter('resp-filter-mes');
 
+  // Líderes veem histórico completo por padrão (sem filtro de mês pré-selecionado)
+  if (!isAdmin) {
+    const mesSel = document.getElementById('resp-filter-mes');
+    if (mesSel && mesSel.dataset.liderInit !== liderAutenticado) {
+      mesSel.value = '';
+      mesSel.dataset.liderInit = liderAutenticado;
+    }
+  }
+
   const lider   = isAdmin ? document.getElementById('resp-filter-lider').value : liderAutenticado;
   const classif = document.getElementById('resp-filter-class').value;
   const mes     = document.getElementById('resp-filter-mes').value;
