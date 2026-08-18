@@ -1507,8 +1507,22 @@ function initFilters() {
 function refreshDashboard() {
   // Garante filtros populados
   _populateLiderFilter('dash-lider-filter');
+
+  // Se líder não-admin autenticado, força filtro para o próprio líder e oculta selects
+  const _liderAuth = (_isRespUnlocked() && _getRespLider() !== 'ADMIN') ? _getRespLider() : null;
+  ['dash-lider-filter', 'pend-lider-filter'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (_liderAuth) {
+      el.value = _liderAuth;
+      el.style.display = 'none';
+    } else {
+      el.style.display = '';
+    }
+  });
+
   const mes  = document.getElementById('dash-month-filter').value || today().slice(0,7);
-  const lider = document.getElementById('dash-lider-filter').value;
+  const lider = _liderAuth || document.getElementById('dash-lider-filter').value;
   const meses = ['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
   const [yr, mo] = mes.split('-').map(Number);
   document.getElementById('dash-title').textContent = `PAINEL 1:1 TEAM LEADER · ${meses[mo-1]}`;
