@@ -1556,21 +1556,47 @@ function renderPendencias() {
     if (!isActive(r)) return;
     if (lider && (r['LÍDER']||'').trim() !== lider) return;
     if (hasAg(idx)) return;
-    (isMeli(r) ? meli : temp).push(r);
+    (isMeli(r) ? meli : temp).push({ r, idx });
   });
-  meli.sort((a,b) => (a.COLABORADOR||'').localeCompare(b.COLABORADOR||''));
-  temp.sort((a,b) => (a.COLABORADOR||'').localeCompare(b.COLABORADOR||''));
+  meli.sort((a,b) => (a.r.COLABORADOR||'').localeCompare(b.r.COLABORADOR||''));
+  temp.sort((a,b) => (a.r.COLABORADOR||'').localeCompare(b.r.COLABORADOR||''));
 
   function render(elId, arr) {
     document.getElementById(elId+'-count').textContent = arr.length;
     const host = document.getElementById(elId+'-list');
     if (!arr.length) { host.innerHTML = '<div class="pend-empty">✓ Todos com 1:1 agendado neste mês</div>'; return; }
     host.innerHTML = `<div class="pend-scroll"><table class="pend-table"><thead><tr><th>Nome</th><th>Empresa</th><th>Líder</th></tr></thead><tbody>${
-      arr.map(r => `<tr><td>${r.COLABORADOR||''}</td><td>${r.EMPRESA||''}</td><td>${r['LÍDER']||'—'}</td></tr>`).join('')
+      arr.map(({ r, idx }) => `<tr>
+        <td style="white-space:nowrap">
+          <button onclick="marcarRapido(${idx})" title="Marcar 1:1 como realizado" style="background:none;border:none;cursor:pointer;font-size:15px;padding:0 6px 0 0;line-height:1;vertical-align:middle;opacity:0.7" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.7">⏱️</button>${r.COLABORADOR||''}
+        </td>
+        <td>${r.EMPRESA||''}</td>
+        <td>${r['LÍDER']||'—'}</td>
+      </tr>`).join('')
     }</tbody></table></div>`;
   }
   render('pend-meli', meli);
   render('pend-temp', temp);
+}
+
+// Atalho da pendência: cria agendamento com data de hoje e já abre o modal de realizar
+async function marcarRapido(idx) {
+  try { await ensureAuth(); } catch(e) { return notify(e.message, 'error'); }
+  const u = firebase.auth().currentUser;
+  const liderNome = (allColabs[idx] && allColabs[idx]['LÍDER']) || '';
+  const entry = {
+    colabIdx: idx,
+    date: today(),
+    time: null,
+    obs: null,
+    status: 'AGENDADO',
+    by: (u && !u.isAnonymous) ? (u.displayName || u.email) : liderNome || 'DESCONHECIDO',
+    byEmail: (u && !u.isAnonymous) ? u.email : null,
+    at: Date.now()
+  };
+  db.ref(`feedback/oneOnOne/${idx}`).push(entry)
+    .then(ref => openRealizarModal(idx, ref.key, false))
+    .catch(handleWriteError);
 }
 
 function renderPerformance() {
