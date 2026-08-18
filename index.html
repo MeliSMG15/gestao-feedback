@@ -1568,7 +1568,7 @@ function renderPendencias() {
     host.innerHTML = `<div class="pend-scroll"><table class="pend-table"><thead><tr><th>Nome</th><th>Empresa</th><th>Líder</th></tr></thead><tbody>${
       arr.map(({ r, idx }) => `<tr>
         <td style="white-space:nowrap">
-          <button onclick="marcarRapido(${idx})" title="Marcar 1:1 como realizado" style="background:none;border:none;cursor:pointer;font-size:15px;padding:0 6px 0 0;line-height:1;vertical-align:middle;opacity:0.7" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.7">⏱️</button>${r.COLABORADOR||''}
+          <button onclick="agendarRapido(${idx})" title="Agendar 1:1" style="background:none;border:none;cursor:pointer;font-size:15px;padding:0 6px 0 0;line-height:1;vertical-align:middle;opacity:0.7" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.7">⏱️</button>${r.COLABORADOR||''}
         </td>
         <td>${r.EMPRESA||''}</td>
         <td>${r['LÍDER']||'—'}</td>
@@ -1579,24 +1579,11 @@ function renderPendencias() {
   render('pend-temp', temp);
 }
 
-// Atalho da pendência: cria agendamento com data de hoje e já abre o modal de realizar
-async function marcarRapido(idx) {
-  try { await ensureAuth(); } catch(e) { return notify(e.message, 'error'); }
-  const u = firebase.auth().currentUser;
-  const liderNome = (allColabs[idx] && allColabs[idx]['LÍDER']) || '';
-  const entry = {
-    colabIdx: idx,
-    date: today(),
-    time: null,
-    obs: null,
-    status: 'AGENDADO',
-    by: (u && !u.isAnonymous) ? (u.displayName || u.email) : liderNome || 'DESCONHECIDO',
-    byEmail: (u && !u.isAnonymous) ? u.email : null,
-    at: Date.now()
-  };
-  db.ref(`feedback/oneOnOne/${idx}`).push(entry)
-    .then(ref => openRealizarModal(idx, ref.key, false))
-    .catch(handleWriteError);
+// Atalho da pendência: abre o modal de agendar com o colaborador já preenchido
+function agendarRapido(idx) {
+  openAgendarModal();
+  document.getElementById('ag-colab').value = allColabs[idx].COLABORADOR || '';
+  onAgColabChange();
 }
 
 function renderPerformance() {
