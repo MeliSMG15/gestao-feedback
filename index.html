@@ -1390,13 +1390,18 @@ function renderAuthUI() {
 // ── Senhas por líder pra acessar Respostas (persistente 7 dias em localStorage) ──
 // ADMIN vê todas; cada líder vê só os colaboradores dele.
 const LIDER_PASSWORDS = {
-  'ADMIN':    'smg15@2026',
-  'ACLISON':  'Aclison@4823',
-  'NATHÁLIA': 'Nathalia@7156',
-  'STÉFANI':  'Stefani@3094',
-  'CARLOS':   'Carlos@6512',
-  'LUCAS':    'Lucas@8347',
-  'THIAGO':   'Thiago@2681'
+  'ADMIN':     'smg15@2026',
+  'ACLISON':   'Aclison@4823',
+  'NATHÁLIA':  'Nathalia@7156',
+  'STÉFANI':   'Stefani@3094',
+  'CARLOS':    'Carlos@6512',
+  'LUCAS':     'Lucas@8347',
+  'THIAGO':    'Thiago@2681',
+  'LEANDRO':   'Leandro@5847',
+  'FRANCK':    'Franck@2963',
+  'VICTOR':    'Victor@7412',
+  'WILSON':    'Wilson@3856',
+  'GUILHERME': 'Guilherme@9173'
 };
 const RESP_LOCK_KEY  = 'resp_unlock_until';
 const RESP_LIDER_KEY = 'resp_lider_atual';
@@ -2035,8 +2040,11 @@ function refreshRespostas() {
   const mes     = document.getElementById('resp-filter-mes').value;
   const search  = (document.getElementById('resp-filter-search').value || '').trim().toLowerCase();
 
+  // Normaliza nome pra comparação: remove acentos, espaços extras e maiuscula
+  function _normL(s) { return (s||'').trim().toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
+
   let list = flatAgendamentos().filter(o => o.status === 'REALIZADO' && o.form);
-  if (lider)   list = list.filter(o => (o.colab['LÍDER']||'').trim().toUpperCase() === lider.toUpperCase());
+  if (lider)   list = list.filter(o => _normL(o.colab['LÍDER']) === _normL(lider));
   if (classif) list = list.filter(o => o.form.classificacao === classif);
   if (mes)     list = list.filter(o => (o.form.date || o.date || '').startsWith(mes));
   if (search)  list = list.filter(o => (o.colab.COLABORADOR||'').toLowerCase().includes(search));
