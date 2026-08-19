@@ -1929,7 +1929,7 @@ async function reativarAg(idx, id) {
 async function excluirAg(idx, id) {
   if (!canEdit()) return notify('Sem permissão', 'error');
   if (!confirm('Excluir definitivamente este registro? Esta ação não pode ser desfeita.')) return;
-  try { await ensureFreshToken(); } catch(e) { return notify(e.message, 'error'); }
+  try { await ensureAuth(); } catch(e) { return notify(e.message, 'error'); }
   db.ref(`feedback/oneOnOne/${idx}/${id}`).remove()
     .then(() => notify('Removido'))
     .catch(handleWriteError);
@@ -2291,7 +2291,7 @@ async function excluirResposta(idx, id, nome) {
   if (!isAdmin()) return notify('Apenas o admin pode excluir respostas', 'error');
   const label = nome ? ` de ${nome}` : '';
   if (!confirm(`Excluir definitivamente a resposta${label}?\n\nEssa ação NÃO pode ser desfeita. O agendamento também será removido.`)) return;
-  try { await ensureFreshToken(); } catch(e) { return notify(e.message, 'error'); }
+  try { await ensureAuth(); } catch(e) { return notify(e.message, 'error'); }
   db.ref(`feedback/oneOnOne/${idx}/${id}`).remove()
     .then(() => notify('Resposta excluída'))
     .catch(handleWriteError);
